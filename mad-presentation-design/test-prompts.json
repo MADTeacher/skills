@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "prompt": "Сделай pitch deck на 10 слайдов для AI-продукта. Нужны HTML и редактируемый PPTX.",
+    "expected": "Уточняет аудиторию, цель, storyline, материалы и формат; выбирает constrained HTML из-за PPTX; сначала делает 2-слайдовое направление; проверяет PPTX-editability.",
+    "tests": "workflow.md + pptx-authoring.md + deck architecture + export validation"
+  },
+  {
+    "id": 2,
+    "prompt": "Переделай существующий доклад в красивую HTML-презентацию и PDF.",
+    "expected": "Извлекает структуру, предлагает slide system, использует HTML deck architecture, проверяет в браузере, экспортирует PDF.",
+    "tests": "html-decks.md + design.md"
+  },
+  {
+    "id": 3,
+    "prompt": "Покажи 3 варианта обложки и одного контентного слайда для лекции.",
+    "expected": "Использует 2-слайдовую витрину и design_canvas для сравнения направлений; варианты отличаются понятными параметрами.",
+    "tests": "workflow variants + design_canvas + design.md"
+  },
+  {
+    "id": 4,
+    "prompt": "Проведи ревью презентации и скажи, что исправить перед отправкой руководству.",
+    "expected": "Оценивает message clarity, hierarchy, craft, audience fit and export readiness; дает короткий список fixes.",
+    "tests": "deck-review.md"
+  }
+]
