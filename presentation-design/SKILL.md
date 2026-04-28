@@ -1,5 +1,5 @@
 ---
-name: mad-presentation-design
+name: presentation-design
 description: >-
   Навык для создания, доработки, проверки и экспорта презентаций: HTML-версий,
   редактируемых PPTX, PDF, PNG-слайдов и ограниченного SVG-экспорта для заранее
