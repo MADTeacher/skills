@@ -1,0 +1,12 @@
+[
+  {
+    "id": "dense-swimlane-return-loops",
+    "request": "Create a draw.io incident-response diagram for Product, Support, Platform, and Security swimlanes. Show the main escalation path, two async notification paths, and multiple return loops for retry, re-triage, and postmortem follow-up. Deliver an editable .drawio and a PNG for review inside diagrams.net.",
+    "must_observe": [
+      "Choose overview plus detail pages if the first routing pass would otherwise force more than one core crossing or more than two long back-edges through the center.",
+      "Keep the primary path in the core reading direction and route long return loops on perimeter corridors with explicit waypoints.",
+      "Use entryX/entryY/exitX/exitY when edge ownership would otherwise be ambiguous.",
+      "Run validate_drawio.py and check_drawio_layout.py before export, and report layout gate: 0 fails, 0 unresolved warnings."
+    ]
+  }
+]
