@@ -3,7 +3,7 @@
  * export_deck_pptx.mjs — экспортирует многофайловую презентацию в редактируемый PPTX
  *
  * Использование:
- *   node export_deck_pptx.mjs --slides <dir> --out <file.pptx>
+ *   node export_deck_pptx.mjs --slides <dir> --out <file.pptx> [--allow-unsafe-fonts]
  *
  * Поведение:
  *   - Вызывает scripts/html2pptx.js и переводит элементы HTML DOM в родные объекты PowerPoint
@@ -16,7 +16,9 @@
  *   3. У <p>/<h*> нет background/border/shadow (выносите это на внешний div)
  *   4. У div нет background-image (используйте <img>)
  *   5. Макет измерим: явные размеры, позиции и простые grid/flex-структуры
- *   6. Эмоджи-подсказки заданы как управляемый текст или отдельный слой изображения
+ *   6. Эмоджи-подсказки не остаются editable text; используйте отдельный слой изображения или plain text
+ *   7. Первичные шрифты кроссплатформенно безопасны для Windows/macOS PowerPoint
+ *   8. Каждый HTML-слайд объявляет <meta charset="utf-8" />
  *
  * HTML, написанный только ради визуальной свободы, почти никогда не пройдет проверку:
  * ограничения нужно учитывать с первой строки HTML.
@@ -38,14 +40,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 function parseArgs() {
   const args = {};
   const a = process.argv.slice(2);
-  for (let i = 0; i < a.length; i += 2) {
-    const k = a[i].replace(/^--/, '');
+  for (let i = 0; i < a.length; i++) {
+    const token = a[i];
+    if (!token.startsWith('--')) continue;
+    const k = token.replace(/^--/, '');
+    if (k === 'allow-unsafe-fonts') {
+      args.allowUnsafeFonts = true;
+      continue;
+    }
     args[k] = a[i + 1];
+    i += 1;
   }
   if (!args.slides || !args.out) {
-    console.error('Использование: node export_deck_pptx.mjs --slides <dir> --out <file.pptx>');
+    console.error('Использование: node export_deck_pptx.mjs --slides <dir> --out <file.pptx> [--allow-unsafe-fonts]');
     console.error('');
-    console.error('⚠️ HTML должен соблюдать 6 жестких ограничений (см. references/pptx-authoring.md).');
+    console.error('⚠️ HTML должен соблюдать жесткие ограничения editable PPTX (см. references/pptx-authoring.md).');
     console.error('   Если важнее визуальная свобода, используйте export_deck_pdf.mjs для экспорта PDF.');
     process.exit(1);
   }
@@ -53,7 +62,7 @@ function parseArgs() {
 }
 
 async function main() {
-  const { slides, out } = parseArgs();
+  const { slides, out, allowUnsafeFonts } = parseArgs();
   const slidesDir = path.resolve(slides);
   const outFile = path.resolve(out);
 
@@ -82,11 +91,14 @@ async function main() {
   pres.layout = 'LAYOUT_WIDE';  // 13.333 × 7.5 inch, соответствует HTML body 960 × 540 pt
 
   const errors = [];
+  if (allowUnsafeFonts) {
+    console.error('⚠️ --allow-unsafe-fonts включен: экспорт продолжится даже с unsafe primary fonts. Кросс-OS parity в Windows/macOS PowerPoint не гарантируется.');
+  }
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
     const fullPath = path.join(slidesDir, f);
     try {
-      await html2pptx(fullPath, pres);
+      await html2pptx(fullPath, pres, { allowUnsafeFonts });
       console.log(`  [${i + 1}/${files.length}] ${f} ✓`);
     } catch (e) {
       console.error(`  [${i + 1}/${files.length}] ${f} ✗  ${e.message}`);
@@ -95,7 +107,7 @@ async function main() {
   }
 
   if (errors.length) {
-    console.error(`\n⚠️ Не удалось конвертировать слайды: ${errors.length}. Частая причина: HTML не соблюдает 6 жестких ограничений.`);
+    console.error(`\n⚠️ Не удалось конвертировать слайды: ${errors.length}. Частая причина: HTML не соблюдает жесткие ограничения editable PPTX.`);
     console.error(`  Подробнее см. раздел "частые ошибки" в references/pptx-authoring.md.`);
     if (errors.length === files.length) {
       console.error(`✗ Все слайды упали, PPTX не будет создан.`);

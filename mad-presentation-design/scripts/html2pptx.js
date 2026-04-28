@@ -257,6 +257,21 @@ async function extractSlideData(page) {
       return SINGLE_WEIGHT_FONTS.includes(normalizedFont);
     };
 
+    const normalizePrimaryFont = (fontFamily) => {
+      if (!fontFamily) return '';
+      return fontFamily.toLowerCase().replace(/['"]/g, '').split(',')[0].trim();
+    };
+
+    const isSafePrimaryFont = (fontFamily) => {
+      const normalized = normalizePrimaryFont(fontFamily);
+      return normalized && ['arial', 'verdana', 'trebuchet ms', 'georgia', 'times new roman', 'courier new'].includes(normalized);
+    };
+
+    const containsEmoji = (text) => {
+      if (!text) return false;
+      return /[\p{Extended_Pictographic}\uFE0F\u200D]/u.test(text);
+    };
+
     // Unit conversion helpers
     const pxToInch = (px) => px / PX_PER_IN;
     const pxToPoints = (pxStr) => parseFloat(pxStr) * PT_PER_PX;
@@ -442,6 +457,17 @@ async function extractSlideData(page) {
             if (isBold && !shouldSkipBold(computed.fontFamily)) options.bold = true;
             if (computed.fontStyle === 'italic') options.italic = true;
             if (computed.textDecoration && computed.textDecoration.includes('underline')) options.underline = true;
+            if (!isSafePrimaryFont(computed.fontFamily)) {
+              fontViolations.push(
+                `<${node.tagName.toLowerCase()}> uses unsafe primary font "${normalizePrimaryFont(computed.fontFamily) || computed.fontFamily}". ` +
+                'Use one of: Arial, Verdana, Trebuchet MS, Georgia, Times New Roman, Courier New.'
+              );
+            }
+            if (containsEmoji(node.textContent)) {
+              emojiViolations.push(
+                `<${node.tagName.toLowerCase()}> contains editable emoji text. Replace emoji with raster/icon assets or plain text labels.`
+              );
+            }
             if (computed.color && computed.color !== 'rgb(0, 0, 0)') {
               options.color = rgbToHex(computed.color);
               const transparency = extractAlpha(computed.color);
@@ -494,6 +520,15 @@ async function extractSlideData(page) {
 
     // Собираем ошибки проверки.
     const errors = [];
+    const fontViolations = [];
+    const emojiViolations = [];
+    const charsetViolations = [];
+
+    const charsetMeta = document.querySelector('meta[charset]');
+    const charsetValue = charsetMeta ? (charsetMeta.getAttribute('charset') || '').trim().toLowerCase() : '';
+    if (charsetValue !== 'utf-8') {
+      charsetViolations.push('Slide HTML must declare <meta charset="utf-8" /> for PPTX-safe export.');
+    }
 
     // Проверяем CSS-градиенты.
     if (bgImage && (bgImage.includes('linear-gradient') || bgImage.includes('radial-gradient'))) {
@@ -769,6 +804,19 @@ async function extractSlideData(page) {
         });
 
         const computed = window.getComputedStyle(liElements[0] || el);
+        const listText = liElements.map(li => li.textContent.trim()).join(' ');
+
+        if (!isSafePrimaryFont(computed.fontFamily)) {
+          fontViolations.push(
+            `<${el.tagName.toLowerCase()}> uses unsafe primary font "${normalizePrimaryFont(computed.fontFamily) || computed.fontFamily}". ` +
+            'Use one of: Arial, Verdana, Trebuchet MS, Georgia, Times New Roman, Courier New.'
+          );
+        }
+        if (containsEmoji(listText)) {
+          emojiViolations.push(
+            `<${el.tagName.toLowerCase()}> contains editable emoji text. Replace emoji with raster/icon assets or plain text labels.`
+          );
+        }
 
         elements.push({
           type: 'list',
@@ -815,6 +863,17 @@ async function extractSlideData(page) {
       }
 
       const computed = window.getComputedStyle(el);
+      if (!isSafePrimaryFont(computed.fontFamily)) {
+        fontViolations.push(
+          `<${el.tagName.toLowerCase()}> uses unsafe primary font "${normalizePrimaryFont(computed.fontFamily) || computed.fontFamily}". ` +
+          'Use one of: Arial, Verdana, Trebuchet MS, Georgia, Times New Roman, Courier New.'
+        );
+      }
+      if (containsEmoji(text)) {
+        emojiViolations.push(
+          `<${el.tagName.toLowerCase()}> contains editable emoji text. Replace emoji with raster/icon assets or plain text labels.`
+        );
+      }
       const rotation = getRotation(computed.transform, computed.writingMode);
       const { x, y, w, h } = getPositionAndSize(el, rect, rotation);
 
@@ -889,14 +948,15 @@ async function extractSlideData(page) {
       processed.add(el);
     });
 
-    return { background, elements, placeholders, errors };
+    return { background, elements, placeholders, errors, fontViolations, emojiViolations, charsetViolations };
   });
 }
 
 async function html2pptx(htmlFile, pres, options = {}) {
   const {
     tmpDir = process.env.TMPDIR || '/tmp',
-    slide = null
+    slide = null,
+    allowUnsafeFonts = false
   } = options;
 
   try {
@@ -952,6 +1012,21 @@ async function html2pptx(htmlFile, pres, options = {}) {
 
     if (slideData.errors && slideData.errors.length > 0) {
       validationErrors.push(...slideData.errors);
+    }
+    if (slideData.charsetViolations && slideData.charsetViolations.length > 0) {
+      validationErrors.push(...slideData.charsetViolations);
+    }
+    if (slideData.emojiViolations && slideData.emojiViolations.length > 0) {
+      validationErrors.push(...slideData.emojiViolations);
+    }
+    if (slideData.fontViolations && slideData.fontViolations.length > 0) {
+      if (allowUnsafeFonts) {
+        slideData.fontViolations.forEach((warning) => {
+          console.error(`PPTX unsafe-font warning: ${htmlFile}: ${warning}`);
+        });
+      } else {
+        validationErrors.push(...slideData.fontViolations);
+      }
     }
 
     // Throw all errors at once if any exist

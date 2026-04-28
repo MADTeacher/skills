@@ -4,6 +4,24 @@ Build a slide presentation as a single HTML file with fixed-size slides that let
 
 A deck is fixed-size content (typically 1920×1080, 16:9) that scales to fit any screen. Don't hand-roll the scaling — use the deck shell starter.
 
+## Delivery Modes
+
+Choose the mode before building:
+
+- **Browser-first HTML deck** — optimize for the browser preview, with more visual freedom.
+- **Cross-platform editable-PPTX-safe deck** — optimize for later editable PPTX export that should survive Windows/macOS PowerPoint without font or emoji surprises.
+
+If the user asks for editable PPTX, cross-OS sharing, or a deck that others will open in PowerPoint, use the second mode from the start.
+
+For **editable-PPTX-safe** decks:
+
+- Use only these primary text fonts: `Arial`, `Verdana`, `Trebuchet MS`, `Georgia`, `Times New Roman`, `Courier New`.
+- Recommended defaults: sans=`Arial`, serif=`Georgia` or `Times New Roman`, mono=`Courier New`.
+- Do not use these as primary PPTX fonts: `Avenir`, `Avenir Next`, `SF Pro`, `San Francisco`, `Helvetica Neue`, `Inter`, `-apple-system`, `system-ui`, `BlinkMacSystemFont`, `Segoe UI`, `Calibri`, `Aptos`, or local/brand fonts unless the deck is intentionally rasterized or the user accepts non-parity.
+- Every slide HTML must declare `<meta charset="utf-8" />`.
+- Do not use editable emoji text as part of the real slide content. Replace emoji with raster/icon assets or plain text labels instead.
+- Browser preview and PNG checks are necessary, but they do **not** prove PPTX parity on Windows/macOS.
+
 ## Phase 1: Discovery
 
 Confirm before building:
@@ -18,9 +36,23 @@ Confirm before building:
 
 If the user gave enough context to skip the question round (e.g., "make a 5-slide deck for engineering all-hands from this PRD"), proceed.
 
+Also confirm whether the deck is:
+
+- HTML/browser-only, or
+- intended for editable PPTX / cross-OS PowerPoint use.
+
+That decision changes the typography and asset rules immediately.
+
 ## Phase 2: Plan the layout system
 
 Before building any slide, commit to a layout system. Vocalize this in the file as a comment block at the top so the user can see your plan.
+
+If the deck is PPTX-safe, include these extra assumptions in the comment block:
+
+- primary font family chosen from the PPTX-safe list;
+- UTF-8 meta present;
+- no editable emoji text;
+- browser/PNG QA will not be treated as final PPTX proof.
 
 A typical deck has 4–6 layout types:
 
@@ -76,6 +108,13 @@ For each slide:
 
 Use the spacing and color tokens from the design system (or the aesthetic established in Phase 2). Don't introduce new values inline.
 
+For editable-PPTX-safe slides:
+
+- keep primary typography within the safe font list even if the browser has more expressive local fonts available;
+- use icon/raster cues instead of emoji-as-text;
+- keep the slide HTML explicitly UTF-8;
+- prefer clarity and export reliability over platform-specific typographic voice.
+
 ## Phase 5: Speaker notes (only if requested)
 
 Speaker notes go off by default. Only add them when the user explicitly asks. When they do:
@@ -96,6 +135,13 @@ Walk the deck top to bottom in the user's preview. Check:
 - No content overflows the slide bounds
 - Type sizes meet the minimums (24px+ body)
 - Color contrast meets WCAG (run quick contrast check, or invoke `accessibility-audit` for thoroughness)
+
+For editable-PPTX-safe decks, also check:
+
+- primary fonts are from the safe whitelist;
+- there is no editable emoji text in headings, paragraphs, chips, labels, or lists;
+- every slide HTML declares `<meta charset="utf-8" />`;
+- handoff notes say that browser/PNG QA alone does not prove PowerPoint parity.
 
 For end-of-turn delivery, surface the final HTML file and run a verification pass yourself — render it headlessly (Playwright or chrome-devtools) and check scaling, layout, and overflow. Codex doesn't have a verifier subagent; you do this in-loop.
 

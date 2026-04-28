@@ -18,6 +18,10 @@ Do not try to recreate Figma in code. Use the medium for what it is good at.
 
 HTML should remain canonical and directly editable.
 
+If the artifact may become editable PPTX, remember that browser-canonical HTML
+is not the same thing as PowerPoint-safe HTML. In that mode, avoid
+platform-specific type stacks and avoid emoji-as-text as a core visual device.
+
 ## Understand Users
 
 Design for the user, not for yourself.
@@ -55,6 +59,10 @@ Match format to task:
 - interactions and flows -> clickable prototype;
 - slides -> fixed-size deck shell;
 - motion -> timeline-driven surface.
+
+If slide delivery includes editable PPTX or cross-OS PowerPoint use, choose the
+PPTX-safe slide path first instead of designing a browser-only deck and hoping
+export will preserve it later.
 
 If multiple options are needed, prefer one document with toggles or tweaks over
 scattered `v1/v2/v3` files.

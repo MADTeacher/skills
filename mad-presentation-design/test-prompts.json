@@ -52,5 +52,29 @@
     "prompt": "Сделай учебные слайды для 5 класса по биологии про строение листа. Хочу Teaching Lab, можно эмодзи, но детям нужно видеть, о чем речь.",
     "expected": "Teaching Lab не ограничивается шагами и эмодзи: агент сначала решает, что нужен рисунок, фотография или схема листа, подбирает или честно помечает предметное изображение, оставляет названия частей редактируемыми подписями, использует стрелки и выноски отдельными слоями, а эмодзи применяет только как подсказки к упражнению или повторению.",
     "tests": "content-assets.md + design.md + design-directions.md + workflow.md + assets/examples/directions/teaching-lab-visuals.html"
+  },
+  {
+    "id": 10,
+    "prompt": "Сделай 10-слайдовую презентацию и редактируемый PPTX для команды, файл будут открывать и на Windows, и на macOS.",
+    "expected": "Агент сразу переключается в PPTX-safe режим: выбирает только whitelist primary fonts, требует UTF-8 HTML, не оставляет editable emoji text и явно проектирует deck как кроссплатформенный PowerPoint output.",
+    "tests": "SKILL.md + workflow.md + pptx-authoring.md + html-decks.md"
+  },
+  {
+    "id": 11,
+    "prompt": "Сделай веселую образовательную PPTX-презентацию для детей, можно эмодзи, но чтобы потом PowerPoint открывался одинаково.",
+    "expected": "Агент не оставляет эмодзи как editable text в PPTX-safe режиме: использует raster/icon cues или plain-text labels, сохраняет учебную роль подсказок и держит кроссплатформенно-безопасные шрифты.",
+    "tests": "content-assets.md + pptx-authoring.md + workflow.md + assets/examples/directions/teaching-lab-pptx-safe.html"
+  },
+  {
+    "id": 12,
+    "prompt": "Сделай keynote-style editable PPTX с ощущением Apple, но чтобы потом можно было править на Windows.",
+    "expected": "Агент сохраняет настроение через композицию, цвет и изображения, но не выбирает Avenir/SF/system fonts как primary text fonts для editable PPTX. Если стиль зависит от unsafe fonts, агент честно предлагает PDF/PNG или constrained PPTX variant.",
+    "tests": "workflow.md + pptx-authoring.md + html-decks.md"
+  },
+  {
+    "id": 13,
+    "prompt": "Экспортируй в editable PPTX deck с primary font Avenir Next.",
+    "expected": "PPTX export path блокирует сборку по умолчанию и выдает понятную ошибку с safe replacements. Только явный CLI escape hatch `--allow-unsafe-fonts` переводит эту ошибку в warning.",
+    "tests": "scripts/export_deck_pptx.mjs + scripts/html2pptx.js + pptx-authoring.md"
   }
 ]

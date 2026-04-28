@@ -18,6 +18,7 @@
 | Направление: Product Keynote | HTML 16:9 | `directions/product-keynote.html` |
 | Направление: Teaching Lab с управляемыми размерами эмоджи | HTML 16:9 | `directions/teaching-lab-emoji.html` |
 | Направление: Teaching Lab с предметным изображением | HTML 16:9 | `directions/teaching-lab-visuals.html` |
+| Направление: Teaching Lab PPTX-safe без editable emoji text | HTML 16:9 | `directions/teaching-lab-pptx-safe.html` |
 
 ## Правила
 
@@ -27,6 +28,8 @@
   разрешение украшать каждый слайд случайными эмоджи.
 - Пример Teaching Lab с предметным изображением показывает, как отделить
   будущий PNG/JPG/WebP от редактируемых подписей, стрелок и учебного задания.
+- Пример Teaching Lab PPTX-safe показывает кроссплатформенно-безопасный путь:
+  whitelist fonts, UTF-8 meta и image/icon cues вместо editable emoji text.
 - PNG-превью намеренно не хранятся в навыке: их нужно получать свежими через
   `scripts/export_deck_png.mjs` или `scripts/verify.py`.
 - SVG-пример показывает исходный векторный слайд. Он не обещает, что любую

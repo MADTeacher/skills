@@ -88,6 +88,10 @@ Read only the layer you need:
   the user did not ask for it and it cannot be derived from context.
 - Do not start hi-fi from scratch when real product, brand, or code context can
   be read first.
+- For decks that may become editable PPTX or be shared across Windows and macOS,
+  do not treat browser-perfect HTML as sufficient. Switch into a PPTX-safe
+  authoring posture before drawing slides: use cross-platform-safe primary
+  fonts, require UTF-8 slide HTML, and avoid editable emoji text.
 - Do not bloat `SKILL.md`; the long-form rules already live in `references/`.
 - Do not scatter work across many disposable files when one comparison surface,
   tweakable document, or cohesive prototype is better.
