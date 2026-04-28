@@ -6,16 +6,17 @@
  *   node export_deck_pptx.mjs --slides <dir> --out <file.pptx>
  *
  * Поведение:
- *   - Вызывает scripts/html2pptx.js и переводит HTML DOM по элементам в нативные объекты PowerPoint
+ *   - Вызывает scripts/html2pptx.js и переводит элементы HTML DOM в родные объекты PowerPoint
  *   - Текст становится настоящими текстовыми блоками, которые можно редактировать двойным кликом в PPT
  *   - Размер body: 960pt × 540pt (LAYOUT_WIDE, 13.333″ × 7.5″)
  *
- * ⚠️ HTML должен соблюдать 5 жестких ограничений (см. references/pptx-authoring.md):
+ * ⚠️ HTML должен соблюдать 6 жестких ограничений (см. references/pptx-authoring.md):
  *   1. Текст обернут в <p>/<h1>-<h6> (нельзя класть текст прямо в div)
  *   2. CSS-градиенты не используются
  *   3. У <p>/<h*> нет background/border/shadow (выносите это на внешний div)
  *   4. У div нет background-image (используйте <img>)
- *   5. Layout измерим: явные размеры, позиции и простые grid/flex-структуры
+ *   5. Макет измерим: явные размеры, позиции и простые grid/flex-структуры
+ *   6. Эмоджи-подсказки заданы как управляемый текст или отдельный слой изображения
  *
  * HTML, написанный только ради визуальной свободы, почти никогда не пройдет проверку:
  * ограничения нужно учитывать с первой строки HTML.
@@ -44,7 +45,7 @@ function parseArgs() {
   if (!args.slides || !args.out) {
     console.error('Использование: node export_deck_pptx.mjs --slides <dir> --out <file.pptx>');
     console.error('');
-    console.error('⚠️ HTML должен соблюдать 5 жестких ограничений (см. references/pptx-authoring.md).');
+    console.error('⚠️ HTML должен соблюдать 6 жестких ограничений (см. references/pptx-authoring.md).');
     console.error('   Если важнее визуальная свобода, используйте export_deck_pdf.mjs для экспорта PDF.');
     process.exit(1);
   }
@@ -94,7 +95,7 @@ async function main() {
   }
 
   if (errors.length) {
-    console.error(`\n⚠️ Не удалось конвертировать слайды: ${errors.length}. Частая причина: HTML не соблюдает 5 жестких ограничений.`);
+    console.error(`\n⚠️ Не удалось конвертировать слайды: ${errors.length}. Частая причина: HTML не соблюдает 6 жестких ограничений.`);
     console.error(`  Подробнее см. раздел "частые ошибки" в references/pptx-authoring.md.`);
     if (errors.length === files.length) {
       console.error(`✗ Все слайды упали, PPTX не будет создан.`);

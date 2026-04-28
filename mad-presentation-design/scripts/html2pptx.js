@@ -1,28 +1,28 @@
 /**
- * html2pptx - Convert HTML slide to pptxgenjs slide with positioned elements
+ * html2pptx - переводит HTML-слайд в слайд pptxgenjs с позиционированными элементами
  *
- * USAGE:
+ * Использование:
  *   const pptx = new pptxgen();
- *   pptx.layout = 'LAYOUT_16x9';  // Must match HTML body dimensions
+ *   pptx.layout = 'LAYOUT_16x9';  // Должно совпадать с размерами body в HTML
  *
  *   const { slide, placeholders } = await html2pptx('slide.html', pptx);
  *   slide.addChart(pptx.charts.LINE, data, placeholders[0]);
  *
  *   await pptx.writeFile('output.pptx');
  *
- * FEATURES:
- *   - Converts HTML to PowerPoint with accurate positioning
- *   - Supports text, images, shapes, and bullet lists
- *   - Extracts placeholder elements (class="placeholder") with positions
- *   - Handles CSS gradients, borders, and margins
+ * Возможности:
+ *   - Переводит HTML в PowerPoint с точным позиционированием
+ *   - Поддерживает текст, изображения, фигуры и маркированные списки
+ *   - Извлекает элементы-заглушки (class="placeholder") с координатами
+ *   - Обрабатывает CSS-градиенты, рамки и отступы
  *
- * VALIDATION:
- *   - Uses body width/height from HTML for viewport sizing
- *   - Throws error if HTML dimensions don't match presentation layout
- *   - Throws error if content overflows body (with overflow details)
+ * Проверка:
+ *   - Берет ширину и высоту body из HTML для размера области просмотра
+ *   - Выдает ошибку, если размеры HTML не совпадают с форматом презентации
+ *   - Выдает ошибку, если содержимое выходит за границы body
  *
- * RETURNS:
- *   { slide, placeholders } where placeholders is an array of { id, x, y, w, h }
+ * Возвращает:
+ *   { slide, placeholders }, где placeholders — массив { id, x, y, w, h }
  */
 
 const { chromium } = require('playwright');
@@ -56,16 +56,16 @@ async function getBodyDimensions(page) {
 
   if (widthOverflowPt > 0 || heightOverflowPt > 0) {
     const directions = [];
-    if (widthOverflowPt > 0) directions.push(`${widthOverflowPt.toFixed(1)}pt horizontally`);
-    if (heightOverflowPt > 0) directions.push(`${heightOverflowPt.toFixed(1)}pt vertically`);
-    const reminder = heightOverflowPt > 0 ? ' (Remember: leave 0.5" margin at bottom of slide)' : '';
-    errors.push(`HTML content overflows body by ${directions.join(' and ')}${reminder}`);
+    if (widthOverflowPt > 0) directions.push(`${widthOverflowPt.toFixed(1)}pt по горизонтали`);
+    if (heightOverflowPt > 0) directions.push(`${heightOverflowPt.toFixed(1)}pt по вертикали`);
+    const reminder = heightOverflowPt > 0 ? ' (оставьте поле 0.5" внизу слайда)' : '';
+    errors.push(`Содержимое HTML выходит за границы body на ${directions.join(' и ')}${reminder}`);
   }
 
   return { ...bodyDimensions, errors };
 }
 
-// Helper: Validate dimensions match presentation layout
+// Проверяет, что размеры HTML совпадают с форматом презентации.
 function validateDimensions(bodyDimensions, pres) {
   const errors = [];
   const widthInches = bodyDimensions.width / PX_PER_IN;
@@ -77,8 +77,8 @@ function validateDimensions(bodyDimensions, pres) {
 
     if (Math.abs(layoutWidth - widthInches) > 0.1 || Math.abs(layoutHeight - heightInches) > 0.1) {
       errors.push(
-        `HTML dimensions (${widthInches.toFixed(1)}" × ${heightInches.toFixed(1)}") ` +
-        `don't match presentation layout (${layoutWidth.toFixed(1)}" × ${layoutHeight.toFixed(1)}")`
+        `Размеры HTML (${widthInches.toFixed(1)}" × ${heightInches.toFixed(1)}") ` +
+        `не совпадают с форматом презентации (${layoutWidth.toFixed(1)}" × ${layoutHeight.toFixed(1)}")`
       );
     }
   }
@@ -492,20 +492,20 @@ async function extractSlideData(page) {
     const bgImage = bodyStyle.backgroundImage;
     const bgColor = bodyStyle.backgroundColor;
 
-    // Collect validation errors
+    // Собираем ошибки проверки.
     const errors = [];
 
-    // Validate: Check for CSS gradients
+    // Проверяем CSS-градиенты.
     if (bgImage && (bgImage.includes('linear-gradient') || bgImage.includes('radial-gradient'))) {
       errors.push(
-        'CSS gradients are not supported. Use Sharp to rasterize gradients as PNG images first, ' +
-        'then reference with background-image: url(\'gradient.png\')'
+        'CSS-градиенты не поддерживаются. Сначала растеризуйте градиенты в PNG через Sharp, ' +
+        'затем подключите их через background-image: url(\'gradient.png\')'
       );
     }
 
     let background;
     if (bgImage && bgImage !== 'none') {
-      // Extract URL from url("...") or url(...)
+      // Достаем URL из url("...") или url(...).
       const urlMatch = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
       if (urlMatch) {
         background = {
@@ -525,7 +525,7 @@ async function extractSlideData(page) {
       };
     }
 
-    // Process all elements
+    // Обрабатываем все элементы.
     const elements = [];
     const placeholders = [];
     const textTags = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'UL', 'OL', 'LI'];
@@ -534,7 +534,7 @@ async function extractSlideData(page) {
     document.querySelectorAll('*').forEach((el) => {
       if (processed.has(el)) return;
 
-      // Validate text elements don't have backgrounds, borders, or shadows
+      // Текстовые элементы не должны иметь фон, рамку или тень.
       if (textTags.includes(el.tagName)) {
         const computed = window.getComputedStyle(el);
         const hasBg = computed.backgroundColor && computed.backgroundColor !== 'rgba(0, 0, 0, 0)';
@@ -547,19 +547,19 @@ async function extractSlideData(page) {
 
         if (hasBg || hasBorder || hasShadow) {
           errors.push(
-            `Text element <${el.tagName.toLowerCase()}> has ${hasBg ? 'background' : hasBorder ? 'border' : 'shadow'}. ` +
-            'Backgrounds, borders, and shadows are only supported on <div> elements, not text elements.'
+            `Текстовый элемент <${el.tagName.toLowerCase()}> содержит ${hasBg ? 'фон' : hasBorder ? 'рамку' : 'тень'}. ` +
+            'Фон, рамки и тени поддерживаются только на <div>, а не на текстовых элементах.'
           );
           return;
         }
       }
 
-      // Extract placeholder elements (for charts, etc.)
+      // Извлекаем элементы-заглушки для графиков и похожих объектов.
       if (el.className && el.className.includes('placeholder')) {
         const rect = el.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) {
           errors.push(
-            `Placeholder "${el.id || 'unnamed'}" has ${rect.width === 0 ? 'width: 0' : 'height: 0'}. Check the layout CSS.`
+            `Заглушка "${el.id || 'без имени'}" имеет ${rect.width === 0 ? 'width: 0' : 'height: 0'}. Проверьте CSS-компоновку.`
           );
         } else {
           placeholders.push({
@@ -593,36 +593,36 @@ async function extractSlideData(page) {
         }
       }
 
-      // Extract DIVs with backgrounds/borders as shapes
+      // Извлекаем DIV с фоном или рамкой как фигуры.
       const isContainer = el.tagName === 'DIV' && !textTags.includes(el.tagName);
       if (isContainer) {
         const computed = window.getComputedStyle(el);
         const hasBg = computed.backgroundColor && computed.backgroundColor !== 'rgba(0, 0, 0, 0)';
 
-        // Validate: Check for unwrapped text content in DIV
+        // Проверяем, что текст внутри DIV обернут в текстовые теги.
         for (const node of el.childNodes) {
           if (node.nodeType === Node.TEXT_NODE) {
             const text = node.textContent.trim();
             if (text) {
               errors.push(
-                `DIV element contains unwrapped text "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}". ` +
-                'All text must be wrapped in <p>, <h1>-<h6>, <ul>, or <ol> tags to appear in PowerPoint.'
+                `DIV содержит текст без текстового тега "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}". ` +
+                'Весь текст должен быть внутри <p>, <h1>-<h6>, <ul> или <ol>, чтобы попасть в PowerPoint.'
               );
             }
           }
         }
 
-        // Check for background images on shapes
+        // Проверяем фоновые изображения на фигурах.
         const bgImage = computed.backgroundImage;
         if (bgImage && bgImage !== 'none') {
           errors.push(
-            'Background images on DIV elements are not supported. ' +
-            'Use solid colors or borders for shapes, or use slide.addImage() in PptxGenJS to layer images.'
+            'Фоновые изображения на DIV не поддерживаются. ' +
+            'Для фигур используйте сплошные цвета или рамки, а изображения добавляйте отдельным слоем через slide.addImage() в PptxGenJS.'
           );
           return;
         }
 
-        // Check for borders - both uniform and partial
+        // Проверяем рамки: одинаковые со всех сторон и частичные.
         const borderTop = computed.borderTopWidth;
         const borderRight = computed.borderRightWidth;
         const borderBottom = computed.borderBottomWidth;
@@ -639,7 +639,7 @@ async function extractSlideData(page) {
           const w = pxToInch(rect.width);
           const h = pxToInch(rect.height);
 
-          // Collect lines to add after shape (inset by half the line width to center on edge)
+          // Собираем линии, которые нужно добавить после фигуры.
           if (parseFloat(borderTop) > 0) {
             const widthPt = pxToPoints(borderTop);
             const inset = (widthPt / 72) / 2; // Convert points to inches, then half
