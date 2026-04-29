@@ -76,5 +76,41 @@
     "prompt": "Экспортируй в editable PPTX deck с primary font Avenir Next.",
     "expected": "PPTX export path блокирует сборку по умолчанию и выдает понятную ошибку с safe replacements. Только явный CLI escape hatch `--allow-unsafe-fonts` переводит эту ошибку в warning.",
     "tests": "scripts/export_deck_pptx.mjs + scripts/html2pptx.js + pptx-authoring.md"
+  },
+  {
+    "id": 14,
+    "prompt": "Сделай презентацию с векторной обложкой в SVG: абстрактная сцена про исследовательскую лабораторию, нужны HTML, PNG и отдельный SVG-файл.",
+    "expected": "Агент выбирает presentation-svg.md, делает самодостаточный native SVG без внешних ресурсов, проверяет безопасность и PNG-рендер через scripts/presentation_svg_pipeline.mjs, просматривает PNG как слайдовый материал и затем экспортирует всю презентацию в PNG штатным скриптом.",
+    "tests": "presentation-svg.md + html-decks.md + scripts/presentation_svg_pipeline.mjs"
+  },
+  {
+    "id": 15,
+    "prompt": "Сделай сложную SVG-обложку для лекции: ночная оранжерея на другой планете, стеклянный купол, мягкий свет, необычные геометрические растения. Нужны PNG-превью и вставка в HTML-презентацию.",
+    "expected": "Агент использует presentation-svg.md как вход, затем svg-presentation/workflow.md и svg-presentation/techniques.md, фиксирует роль обложки в деке, строит сцену слоями, оставляет место под текст презентации, запускает audit и правит SVG по PNG-ревью.",
+    "tests": "presentation-svg.md + svg-presentation/workflow.md + svg-presentation/techniques.md + svg-presentation/visual-review.md + scripts/presentation_svg_pipeline.mjs"
+  },
+  {
+    "id": 16,
+    "prompt": "Вот существующий SVG-разделитель для презентации, но он содержит onload и внешний href. Почини, сохрани стиль и сделай PNG для проверки.",
+    "expected": "Агент сохраняет исходный файл отдельно, читает svg-presentation/safety.md, удаляет активный код и внешние ссылки, заменяет рискованные части внутренними SVG-формами, запускает validate и audit, затем смотрит PNG на читаемость разделителя.",
+    "tests": "svg-presentation/safety.md + svg-presentation/troubleshooting.md + scripts/presentation_svg_pipeline.mjs"
+  },
+  {
+    "id": 17,
+    "prompt": "Сделай SVG-схему на русском языке для слайда про Go generics: строгий стиль, но живой, нужен PNG для просмотра.",
+    "expected": "Агент применяет svg-presentation/language.md, оставляет Go, generics и SVG как технические термины, пишет русские подписи естественно, проверяет читаемость текста на PNG и убирает случайные англоязычные шаблоны.",
+    "tests": "svg-presentation/language.md + svg-presentation/visual-review.md + scripts/presentation_svg_pipeline.mjs"
+  },
+  {
+    "id": 18,
+    "prompt": "Добавь лёгкую анимацию дыхания света к SVG-обложке, но файл должен быть безопасным для HTML-презентации и иметь статичный PNG-превью.",
+    "expected": "Агент использует svg-presentation/techniques.md, выбирает безопасную SMIL-анимацию без JavaScript, держит статичный первый кадр полноценным, запускает validate и render, предупреждает про поддержку анимации в среде публикации.",
+    "tests": "svg-presentation/techniques.md + svg-presentation/safety.md + scripts/presentation_svg_pipeline.mjs"
+  },
+  {
+    "id": 19,
+    "prompt": "Сделай учебные слайды про строение сердца, но нарисуй сердце целиком SVG-формами, чтобы не искать картинки.",
+    "expected": "Агент не принимает SVG как замену предметного учебного изображения: сначала выполняет content-assets.md, ищет или создаёт растровый учебный материал, оставляет подписи редактируемыми слоями, а SVG использует только для стрелок, выносок, схемного слоя или декоративной рамки.",
+    "tests": "content-assets.md + presentation-svg.md + pptx-authoring.md"
   }
 ]

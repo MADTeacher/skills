@@ -6,8 +6,10 @@ description: >-
   превратить заметки или репозиторий в проектный skill с файлом
   .agents/skills/skill-name/SKILL.md, исправить слабый или раздутый skill,
   выбрать scripts/references/assets, добавить validation, forward-testing,
-  resource routing, trigger-rich description, или превратить
-  отчет/инструкцию/шаблон в переиспользуемый агентский навык.
+  resource routing, trigger-rich description, layered validation,
+  instruction coherence, проверку повторов и конфликтов между SKILL.md,
+  references, scripts и agent metadata, или превратить отчет/инструкцию/шаблон
+  в переиспользуемый агентский навык.
 ---
 
 # Advanced Skill Builder
@@ -47,6 +49,7 @@ README, пофайловый обзор или маркетинговая вит
 - дает агенту конкретный порядок действий;
 - отделяет обязательное поведение от доменных деталей;
 - объясняет, когда читать references, запускать scripts и использовать assets;
+- держит description, `SKILL.md` и resources согласованными слоями;
 - предотвращает дорогие ошибки домена;
 - проверяется через validation, smoke tests или forward-testing;
 - не тащит лишние папки, демо и документацию по инерции.
@@ -59,6 +62,7 @@ README, пофайловый обзор или маркетинговая вит
 - заставляет агента читать нерелевантные детали;
 - обещает форматы или поведение без инструментов проверки;
 - прячет условия применения в теле, а не в `description`;
+- повторяет или переопределяет правила в разных слоях;
 - раздувает `SKILL.md` вместо progressive disclosure.
 
 ## Базовый рабочий процесс
@@ -139,7 +143,38 @@ P0 не включает README, changelog, release notes, showcase, demos,
 Каждый ресурс должен иметь в `SKILL.md` явное правило: когда его читать,
 запускать или использовать.
 
-### 6. Написать `SKILL.md`
+Правило владения информацией:
+
+- `description` отвечает только за trigger surface;
+- `SKILL.md` отвечает за core workflow, constraints, routing и validation;
+- `references/` содержат подробности, но не меняют базовые правила;
+- `scripts/` являются источником истины для детерминированных проверок;
+- `assets/` не должны содержать скрытых инструкций без маршрута из `SKILL.md`.
+
+### 6. Проверить согласованность слоев
+
+Перед финальной записью или аудитом проверить layered instruction coherence.
+
+Собрать instruction-bearing файлы: `SKILL.md`, routed `references/`,
+`scripts/*` usage/help, agent metadata и assets/templates, если они содержат
+инструкции агенту.
+
+Найти:
+
+- повторенные правила без ссылки на canonical место;
+- несовпадающие defaults, термины, названия и версии;
+- конфликтующие `must/never`, порядок действий или fallback;
+- hidden “when to use” вне `description`;
+- reference-детали, которые переопределяют `SKILL.md`;
+- resources, не достижимые из routing.
+
+Классифицировать находки как допустимый `summary + pointer`, лишний дубль,
+конфликт, orphan detail или shadowed trigger.
+
+Исправление: оставить одно canonical место, заменить дубль ссылкой, а конфликт
+превратить в precedence rule, decision tree или явный fallback.
+
+### 7. Написать `SKILL.md`
 
 Писать файл `.agents/skills/<skill-name>/SKILL.md` как инструкцию агенту, а не
 как объяснение человеку.
@@ -164,7 +199,7 @@ P0 не включает README, changelog, release notes, showcase, demos,
 - список всех возможных ассетов, если агенту не нужно читать его сразу;
 - повторение больших reference-файлов внутри `SKILL.md`.
 
-### 7. Добавить ресурсы только при доказанной пользе
+### 8. Добавить ресурсы только при доказанной пользе
 
 Перед созданием каждой папки спросить:
 
@@ -177,7 +212,7 @@ P0 не включает README, changelog, release notes, showcase, demos,
 
 Если ответов нет, ресурс не добавлять.
 
-### 8. Проверить навык
+### 9. Проверить навык
 
 Минимальная проверка:
 
@@ -185,6 +220,9 @@ P0 не включает README, changelog, release notes, showcase, demos,
 - проверить, что `name` совпадает с папкой навыка;
 - проверить, что `description` покрывает реальные триггеры;
 - проверить, что все ссылки и пути существуют;
+- проверить, что `SKILL.md` и references не противоречат друг другу;
+- проверить, что references дополняют, а не переопределяют core contract;
+- проверить, что термины, defaults и tool choices едины во всех слоях;
 - запустить available validator, например `quick_validate.py`, если он есть;
 - запустить smoke tests для scripts;
 - проверить, что `SKILL.md` можно читать без внешнего отчета.
@@ -261,54 +299,31 @@ description: >-
 
 ## Resource Routing
 
-| Ситуация | Действие |
-|---|---|
-| Нужен полный процесс | Читать `references/workflow.md` |
-| Нужна доменная схема | Читать `references/schema.md` |
-| Нужно проверить результат | Запустить `scripts/verify.*` |
+| Задача | Читать/запускать | Зачем |
+|---|---|---|
+| Нужен полный процесс | `references/workflow.md` | Полный процесс |
+| Нужна доменная схема | `references/schema.md` | Schema/source of truth |
+| Нужно проверить результат | `scripts/verify.*` | Детерминированная проверка |
 
 ## Constraints
 
 - Не выдумывать отсутствующие факты.
 - Не обещать неподдерживаемые форматы.
-- Не читать большие references без причины.
-- Не создавать новые ресурсы без маршрута из `SKILL.md`.
+- Не читать references или создавать ресурсы без маршрута из `SKILL.md`.
 
 ## Validation
 
-- Проверить frontmatter.
-- Проверить ссылки и пути.
+- Проверить frontmatter, ссылки, пути и layer coherence.
 - Запустить smoke tests для scripts.
 - Для сложных изменений провести forward-testing.
 ```
-
-## Шаблон resource routing
-
-Используйте таблицу маршрутизации, если ресурсов больше двух:
-
-```markdown
-## Resource Routing
-
-| Задача | Читать/запускать | Зачем |
-|---|---|---|
-| Создать новый артефакт | `references/workflow.md` | Полный процесс |
-| Проверить формат | `references/format-constraints.md` | Ограничения формата |
-| Экспортировать | `scripts/export.*` | Детерминированный pipeline |
-| Диагностировать сбой | `references/troubleshooting.md` | Известные симптомы |
-```
-
-Если ресурс не попадает в routing table, скорее всего он не нужен.
 
 ## Advanced patterns
 
 ### Failure-mode guardrails
 
-Для каждого дорогого сбоя добавить правило:
-
-- симптом;
-- причина;
-- действие агента;
-- проверка, что сбой устранен.
+Для каждого дорогого сбоя добавить симптом, причину, действие агента и
+проверку, что сбой устранен.
 
 Пример:
 
@@ -344,17 +359,11 @@ Script должен иметь usage, понятные ошибки и smoke tes
 
 Разделять большие знания по задачам, а не по абстрактным темам.
 
-Лучше:
+Лучше: `references/import-csv.md`, `references/export-pdf.md`,
+`references/schema-validation.md`.
 
-- `references/import-csv.md`;
-- `references/export-pdf.md`;
-- `references/schema-validation.md`.
-
-Хуже:
-
-- `references/all-docs.md`;
-- `references/misc.md`;
-- `references/everything.md`.
+Хуже: `references/all-docs.md`, `references/misc.md`,
+`references/everything.md`.
 
 ### Forward-testing
 
@@ -367,11 +376,8 @@ Return what you did, artifacts produced, validation run, and blockers.
 
 Не писать:
 
-```text
-Review this skill and check whether it fixed problem X that I noticed.
-```
-
-Второй вариант протекает ответом и не проверяет переносимость.
+`Review this skill and check whether it fixed problem X that I noticed.`
+Такой запрос протекает ответом и не проверяет переносимость.
 
 ## Режим аудита существующего навыка
 
@@ -382,9 +388,10 @@ Review this skill and check whether it fixed problem X that I noticed.
 3. Проверить, может ли агент выполнить первый типовой сценарий.
 4. Проверить, нет ли лишнего отчета, README-текста или истории анализа.
 5. Проверить routing: каждый resource должен иметь причину.
-6. Проверить validation: что именно запускается или смотрится.
-7. Проверить failure modes и fallback.
-8. Дать список правок по приоритету.
+6. Проверить layer coherence: повторы, конфликты, shadowed triggers.
+7. Проверить validation: что именно запускается или смотрится.
+8. Проверить failure modes и fallback.
+9. Дать список правок по приоритету.
 
 Критика должна быть жесткой: если документ нельзя использовать как навык,
 сказать это прямо и предложить переписать структуру.
@@ -434,6 +441,18 @@ Review this skill and check whether it fixed problem X that I noticed.
 
 Исправление: оставить core workflow, вынести детали в routed references.
 
+### Конфликтующие слои
+
+Признаки:
+
+- `SKILL.md` задает одно правило, reference или script help задает другое;
+- один и тот же default, формат или термин называется по-разному;
+- подробность в reference меняет core workflow вместо того, чтобы дополнять его;
+- условия срабатывания спрятаны в теле или references, а не в `description`.
+
+Исправление: выбрать canonical место, убрать дубль, добавить ссылку или
+decision tree, а при реальном конфликте явно указать приоритет.
+
 ### Форматные обещания без pipeline
 
 Признаки:
@@ -457,6 +476,11 @@ Review this skill and check whether it fixed problem X that I noticed.
 - [ ] Нет пофайлового отчета, даты анализа и истории создания.
 - [ ] Workflow достаточно конкретен для первого сценария.
 - [ ] Каждый resource имеет маршрут использования.
+- [ ] Верхний слой кратко резюмирует или маршрутизирует, а не пересказывает
+  нижний слой целиком.
+- [ ] References дополняют, а не переопределяют `SKILL.md`.
+- [ ] Термины, defaults и tool choices едины во всех слоях.
+- [ ] Нет конфликтующих `must/never` между `SKILL.md`, references и scripts.
 - [ ] Нет обязательных README/demos/assets/scripts без причины.
 - [ ] Форматные обещания поддержаны scripts или явно ограничены.
 - [ ] Есть validation protocol.

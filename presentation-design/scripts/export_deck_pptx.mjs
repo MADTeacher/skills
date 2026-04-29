@@ -3,14 +3,14 @@
  * export_deck_pptx.mjs — экспортирует многофайловую презентацию в редактируемый PPTX
  *
  * Использование:
- *   node export_deck_pptx.mjs --slides <dir> --out <file.pptx> [--allow-unsafe-fonts]
+ *   node export_deck_pptx.mjs --slides <dir> --out <file.pptx> [--allow-unsafe-fonts] [--allow-partial]
  *
  * Поведение:
  *   - Вызывает scripts/html2pptx.js и переводит элементы HTML DOM в родные объекты PowerPoint
  *   - Текст становится настоящими текстовыми блоками, которые можно редактировать двойным кликом в PPT
  *   - Размер body: 960pt × 540pt (LAYOUT_WIDE, 13.333″ × 7.5″)
  *
- * ⚠️ HTML должен соблюдать 6 жестких ограничений (см. references/pptx-authoring.md):
+ * ⚠️ HTML должен соблюдать жесткие ограничения (см. references/pptx-authoring.md):
  *   1. Текст обернут в <p>/<h1>-<h6> (нельзя класть текст прямо в div)
  *   2. CSS-градиенты не используются
  *   3. У <p>/<h*> нет background/border/shadow (выносите это на внешний div)
@@ -19,6 +19,8 @@
  *   6. Эмоджи-подсказки не остаются editable text; используйте отдельный слой изображения или plain text
  *   7. Первичные шрифты кроссплатформенно безопасны для Windows/macOS PowerPoint
  *   8. Каждый HTML-слайд объявляет <meta charset="utf-8" />
+ * По умолчанию любая ошибка слайда останавливает экспорт. `--allow-partial`
+ * разрешает записать неполный PPTX только если хотя бы один слайд прошел.
  *
  * HTML, написанный только ради визуальной свободы, почти никогда не пройдет проверку:
  * ограничения нужно учитывать с первой строки HTML.
@@ -48,11 +50,15 @@ function parseArgs() {
       args.allowUnsafeFonts = true;
       continue;
     }
+    if (k === 'allow-partial') {
+      args.allowPartial = true;
+      continue;
+    }
     args[k] = a[i + 1];
     i += 1;
   }
   if (!args.slides || !args.out) {
-    console.error('Использование: node export_deck_pptx.mjs --slides <dir> --out <file.pptx> [--allow-unsafe-fonts]');
+    console.error('Использование: node export_deck_pptx.mjs --slides <dir> --out <file.pptx> [--allow-unsafe-fonts] [--allow-partial]');
     console.error('');
     console.error('⚠️ HTML должен соблюдать жесткие ограничения editable PPTX (см. references/pptx-authoring.md).');
     console.error('   Если важнее визуальная свобода, используйте export_deck_pdf.mjs для экспорта PDF.');
@@ -62,7 +68,7 @@ function parseArgs() {
 }
 
 async function main() {
-  const { slides, out, allowUnsafeFonts } = parseArgs();
+  const { slides, out, allowUnsafeFonts, allowPartial } = parseArgs();
   const slidesDir = path.resolve(slides);
   const outFile = path.resolve(out);
 
@@ -94,6 +100,9 @@ async function main() {
   if (allowUnsafeFonts) {
     console.error('⚠️ --allow-unsafe-fonts включен: экспорт продолжится даже с unsafe primary fonts. Кросс-OS parity в Windows/macOS PowerPoint не гарантируется.');
   }
+  if (allowPartial) {
+    console.error('⚠️ --allow-partial включен: если часть слайдов упадет, будет записан неполный PPTX.');
+  }
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
     const fullPath = path.join(slidesDir, f);
@@ -109,14 +118,27 @@ async function main() {
   if (errors.length) {
     console.error(`\n⚠️ Не удалось конвертировать слайды: ${errors.length}. Частая причина: HTML не соблюдает жесткие ограничения editable PPTX.`);
     console.error(`  Подробнее см. раздел "частые ошибки" в references/pptx-authoring.md.`);
+    console.error('  Слайды с ошибками:');
+    errors.forEach(({ file, error }) => {
+      console.error(`  - ${file}: ${error.split('\n')[0]}`);
+    });
+
     if (errors.length === files.length) {
-      console.error(`✗ Все слайды упали, PPTX не будет создан.`);
+      console.error('✗ Все слайды упали, PPTX не будет создан.');
+      process.exit(1);
+    }
+    if (!allowPartial) {
+      console.error('✗ PPTX не будет создан, потому что частичный экспорт запрещен по умолчанию. Исправьте ошибки или явно передайте --allow-partial.');
       process.exit(1);
     }
   }
 
   await pres.writeFile({ fileName: outFile });
-  console.log(`\n✓ Записан файл ${outFile}  (${files.length - errors.length}/${files.length} слайдов, редактируемый PPTX)`);
+  if (errors.length) {
+    console.error(`\n⚠️ Записан частичный файл ${outFile}  (${files.length - errors.length}/${files.length} слайдов, editable PPTX)`);
+  } else {
+    console.log(`\n✓ Записан файл ${outFile}  (${files.length}/${files.length} слайдов, editable PPTX)`);
+  }
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

@@ -31,6 +31,6 @@
 - Пример Teaching Lab PPTX-safe показывает кроссплатформенно-безопасный путь:
   whitelist fonts, UTF-8 meta и image/icon cues вместо editable emoji text.
 - PNG-превью намеренно не хранятся в навыке: их нужно получать свежими через
-  `scripts/export_deck_png.mjs` или `scripts/verify.py`.
+  `scripts/export_deck_png.mjs` или `scripts/verify.mjs`.
 - SVG-пример показывает исходный векторный слайд. Он не обещает, что любую
   HTML-презентацию можно автоматически превратить в редактируемый SVG.
