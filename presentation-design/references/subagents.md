@@ -81,8 +81,8 @@
 Задача:
 
 - независимо открыть презентацию;
-- пройти checklist из `html-decks.md`, `pptx-authoring.md` и `deck-review.md`;
-- экспортировать PNG и проверить слайды, не получая от главного агента подсказок про ожидаемые баги.
+- пройти checklist из `html-decks.md`, `slide-qa.md`, `pptx-authoring.md` и `deck-review.md`;
+- экспортировать PNG, вести `exports/slide-qa.md` и проверить слайды `1..N`, не получая от главного агента подсказок про ожидаемые баги.
 
 Ожидаемый результат:
 
@@ -132,8 +132,8 @@
 Используй skill по пути <path-to-skill>, чтобы проверить презентацию по
 пользовательскому запросу: <user-request>. Не получай от меня список ожидаемых
 ошибок. Самостоятельно открой локальные артефакты, пройди `html-decks.md`,
-`pptx-authoring.md` и `deck-review.md`, выполни экспорт PNG и верни findings,
-артефакты и blockers.
+`slide-qa.md`, `pptx-authoring.md` и `deck-review.md`, выполни экспорт PNG,
+обнови `exports/slide-qa.md` и верни findings, артефакты и blockers.
 ```
 
 ## Анти-паттерны
