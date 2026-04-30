@@ -1,23 +1,23 @@
-# Draw.io Format Notes
+# Заметки по формату Draw.io
 
-## Table Of Contents
+## Содержание
 
-- Minimal file skeleton
-- Required cell structure
-- Routing contract
-- HTML labels and line breaks
-- Common style fragments
-- Edge geometry and waypoints
-- Bad vs good route examples
-- Multi-page guidance
-- Export workflow
-- Editing rules
-- Troubleshooting
-- XML well-formedness
+- Минимальный каркас файла
+- Обязательная структура ячеек
+- Контракт маршрутизации
+- HTML-подписи и переносы строк
+- Частые фрагменты стилей
+- Геометрия связей и промежуточные точки
+- Примеры плохого и хорошего маршрута
+- Работа с несколькими страницами
+- Рабочий процесс экспорта
+- Правила редактирования
+- Диагностика проблем
+- Корректность XML
 
-## Minimal File Skeleton
+## Минимальный каркас файла
 
-Prefer uncompressed XML for generated files:
+Для сгенерированных файлов предпочитай несжатый XML:
 
 ```xml
 <mxfile host="app.diagrams.net" modified="2026-04-18T12:00:00Z" agent="Codex" version="24.7.17" compressed="false">
@@ -32,14 +32,14 @@ Prefer uncompressed XML for generated files:
 </mxfile>
 ```
 
-## Required Cell Structure
+## Обязательная структура ячеек
 
-Every page needs:
+Каждой странице нужны:
 
-- `mxCell id="0"` as the implicit document root
-- `mxCell id="1" parent="0"` as the page layer
+- `mxCell id="0"` как неявный корень документа;
+- `mxCell id="1" parent="0"` как слой страницы.
 
-Create shapes as vertex cells:
+Создавай фигуры как ячейки-вершины:
 
 ```xml
 <mxCell id="api-gateway" value="API Gateway" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
@@ -47,8 +47,8 @@ Create shapes as vertex cells:
 </mxCell>
 ```
 
-Create connectors as edge cells. Prefer explicit route geometry so the path
-stays fixed after reopen:
+Создавай коннекторы как ячейки-связи. Предпочитай явную геометрию маршрута,
+чтобы путь сохранялся после повторного открытия:
 
 ```xml
 <mxCell id="edge-client-api" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" edge="1" parent="1" source="client-app" target="api-gateway">
@@ -61,89 +61,100 @@ stays fixed after reopen:
 </mxCell>
 ```
 
-## Routing Contract
+## Контракт маршрутизации
 
-- Treat routing as authored geometry, not a viewer-time decision by draw.io.
-- `edges[].points` are mandatory for any non-trivial route:
-  - obstacle avoidance
-  - axis changes
-  - lane or zone crossings
-  - non-adjacent node links
-  - perimeter return loops
-- Adjacent direct edges may omit waypoints only when the route is obviously
-  trivial and `scripts/check_drawio_layout.py` produces no waypoint warning.
-- Use `entryX`, `entryY`, `exitX`, and `exitY` whenever the side of attachment
-  matters for readability or to keep the route out of the core content area.
-- Default spacing thresholds:
-  - peer non-container node gap: `24 px`
-  - node-to-page-edge gap: `24 px`
-  - node-to-swimlane-border gap: `32 px`
-  - warning threshold for edge-to-shape clearance: `12 px`
-- Prefer page split over forced density. If the first routing pass still needs
-  more than one core crossing or more than two long back-edges through the
-  middle, split the diagram into overview and detail pages.
+- Считай маршрутизацию авторской геометрией, а не решением draw.io во время
+  просмотра.
+- `edges[].points` обязательны для любого нетривиального маршрута:
+  - обход препятствий;
+  - смены оси;
+  - пересечения дорожек или зон;
+  - связи между несоседними узлами;
+  - возвратные петли по периметру.
+- Соседние прямые связи могут не иметь промежуточных точек только когда маршрут
+  очевидно тривиален и `scripts/check_drawio_layout.py` не дает предупреждение
+  о точках.
+- Используй `entryX`, `entryY`, `exitX` и `exitY`, когда сторона крепления
+  влияет на читаемость или помогает вывести маршрут из основной области.
+- Пороговые интервалы по умолчанию:
+  - зазор между равноправными узлами вне контейнеров: `24 px`;
+  - зазор от узла до края страницы: `24 px`;
+  - зазор от узла до границы swimlane: `32 px`;
+  - порог предупреждения для зазора связь-фигура: `12 px`.
+- Предпочитай разделение страниц принудительной плотности. Если первый проход
+  маршрутизации все еще требует больше одного основного пересечения или больше
+  двух длинных обратных связей через середину, раздели диаграмму на обзор и
+  детали.
 
-## HTML Labels And Line Breaks
+## HTML-подписи и переносы строк
 
-- Prefer `html=1` in every style so labels render correctly whether they contain plain text or HTML tags.
-- Use `<br>` for line breaks in `value` attributes. Do not use literal `\n`.
-- Use `fontStyle` for whole-label emphasis such as bold or italic. Use inline HTML only when formatting part of a label.
-- Escape special characters in attribute values: `&`, `<`, `>`, and `"`.
+- Предпочитай `html=1` в каждом стиле, чтобы подписи корректно отображались и с
+  обычным текстом, и с HTML-тегами.
+- Используй `<br>` для переносов строк в атрибутах `value`. Не используй
+  буквальный `\n`.
+- Используй `fontStyle` для выделения всей подписи, например жирного или
+  курсива. Встроенный HTML используй только когда нужно отформатировать часть
+  подписи.
+- Экранируй специальные символы в значениях атрибутов: `&`, `<`, `>` и `"`.
 
-## Common Style Fragments
+## Частые фрагменты стилей
 
-Start most nodes with:
+Большинство узлов начинай с:
 
 ```text
 whiteSpace=wrap;html=1;
 ```
 
-Useful node recipes:
+Полезные рецепты узлов:
 
-- Process box:
+- Блок процесса:
   - `rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;`
-- Decision:
+- Решение:
   - `shape=rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;`
-- Terminator:
+- Терминатор:
   - `shape=mxgraph.flowchart.terminator;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;`
-- Database:
+- База данных:
   - `shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fillColor=#d5e8d4;strokeColor=#82b366;`
-- Note:
+- Заметка:
   - `shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#fff2cc;strokeColor=#d6b656;`
-- Cloud or external system:
+- Облако или внешняя система:
   - `shape=cloud;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;`
 - Swimlane:
   - `shape=swimlane;whiteSpace=wrap;html=1;horizontal=0;startSize=28;fillColor=#f5f5f5;strokeColor=#666666;`
-- Lightweight container:
+- Легкий контейнер:
   - `rounded=1;whiteSpace=wrap;html=1;container=1;pointerEvents=0;fillColor=#f5f5f5;strokeColor=#666666;`
-- Invisible group:
+- Невидимая группа:
   - `group;pointerEvents=0;`
 
-Useful edge recipes:
+Полезные рецепты связей:
 
-- Orthogonal default:
+- Ортогональный вариант по умолчанию:
   - `edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;`
-- Side-anchored orthogonal route:
+- Ортогональный маршрут с привязкой к сторонам:
   - `edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;`
-- Elbow edge for simple 0-1 bend routes:
+- Ломаная связь для простых маршрутов с 0-1 изгибом:
   - `edgeStyle=elbowEdgeStyle;elbow=vertical;rounded=0;jettySize=auto;html=1;endArrow=block;`
-- Dashed dependency:
+- Пунктирная зависимость:
   - `edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;endArrow=open;`
-- Straight relationship:
+- Прямая связь:
   - `html=1;endArrow=block;`
 
-## Edge Geometry And Waypoints
+## Геометрия связей и промежуточные точки
 
-- Every edge must contain a child `mxGeometry` element. Self-closing edge cells are invalid.
-- Keep `relative="1"` on edge geometry unless you have a specific reason not to.
-- Treat routing as part of the authored geometry, not as a viewer-time decision by draw.io.
-- Encode the intended path with explicit waypoints and any other needed geometry
-  fields so reopening the file does not reroute the edge.
-- If the route still changes after reopen, the geometry is underspecified and must be tightened.
-- If the route is non-trivial, the lack of an `Array as="points"` is a defect in
-  the authored geometry, even when draw.io happens to render a plausible path.
+- Каждая связь должна содержать дочерний элемент `mxGeometry`. Самозакрывающиеся
+  ячейки связей невалидны.
+- Оставляй `relative="1"` на геометрии связи, если нет конкретной причины
+  сделать иначе.
+- Считай маршрутизацию частью авторской геометрии, а не решением draw.io во
+  время просмотра.
+- Кодируй задуманный путь явными промежуточными точками и другими нужными
+  полями геометрии, чтобы повторное открытие файла не перестроило связь.
+- Если маршрут все равно меняется после повторного открытия, геометрия задана
+  недостаточно точно и ее нужно усилить.
+- Если маршрут нетривиален, отсутствие `Array as="points"` — дефект авторской
+  геометрии, даже когда draw.io случайно отображает правдоподобный путь.
 
-Waypoint example:
+Пример промежуточных точек:
 
 ```xml
 <mxCell id="edge-a-b" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" edge="1" parent="1" source="a" target="b">
@@ -156,9 +167,9 @@ Waypoint example:
 </mxCell>
 ```
 
-## Bad Vs Good Route Examples
+## Примеры плохого и хорошего маршрута
 
-Bad route:
+Плохой маршрут:
 
 ```xml
 <mxCell id="edge-bad-return" value="retry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;" edge="1" parent="1" source="verify" target="plan">
@@ -166,14 +177,14 @@ Bad route:
 </mxCell>
 ```
 
-Why it is bad:
+Почему он плох:
 
-- no explicit waypoints even though the edge is a long return loop
-- no side anchoring, so draw.io may pick a visually different entry or exit
-  side after reopen
-- the route is likely to cut back through the center of the page
+- нет явных промежуточных точек, хотя связь — длинная возвратная петля;
+- нет привязки к сторонам, поэтому draw.io может выбрать визуально другой вход
+  или выход после повторного открытия;
+- маршрут, вероятно, прорежет центр страницы.
 
-Good route:
+Хороший маршрут:
 
 ```xml
 <mxCell id="edge-good-return" value="retry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0.5;entryY=0;endArrow=block;" edge="1" parent="1" source="verify" target="plan">
@@ -188,24 +199,26 @@ Good route:
 </mxCell>
 ```
 
-Why it is good:
+Почему он хорош:
 
-- the route leaves from the outer side of the source and re-enters from a
-  clearly chosen side
-- the waypoints move the return loop onto a perimeter corridor instead of
-  across the center
-- reopening the file preserves the intended path
+- маршрут выходит с внешней стороны источника и входит с явно выбранной стороны;
+- промежуточные точки выносят возвратную петлю в коридор периметра, а не через
+  центр;
+- повторное открытие файла сохраняет задуманный путь.
 
-## Multi-Page Guidance
+## Работа с несколькими страницами
 
-- Use separate `<diagram>` elements for overview, deep dive, and legend pages.
-- Keep page names explicit: `Overview`, `Ingestion Pipeline`, `User Journey`, `Legend`.
-- Reuse visual semantics across pages.
-- Repeat key systems across pages when necessary instead of overloading a single canvas.
+- Используй отдельные элементы `<diagram>` для обзора, подробного разбора и
+  страниц легенды.
+- Делай имена страниц явными: `Overview`, `Ingestion Pipeline`, `User Journey`,
+  `Legend`.
+- Переиспользуй визуальную семантику между страницами.
+- При необходимости повторяй ключевые системы на разных страницах, вместо того
+  чтобы перегружать одно полотно.
 
-## Export Workflow
+## Рабочий процесс экспорта
 
-Prefer the bundled export helper:
+Предпочитай встроенный помощник экспорта:
 
 ```bash
 python3 scripts/export_drawio.py diagram.drawio --format png
@@ -213,70 +226,83 @@ python3 scripts/export_drawio.py diagram.drawio --format svg --page-index 1
 python3 scripts/export_drawio.py diagram.drawio --format pdf --all-pages
 ```
 
-The helper locates the draw.io CLI, exports the diagram, and embeds the diagram XML for `png`, `svg`, and `pdf`.
+Помощник находит CLI draw.io, экспортирует диаграмму и встраивает XML диаграммы
+для `png`, `svg` и `pdf`.
 
-The helper may refuse to launch the desktop app unless you pass
-`--allow-desktop-export` or set `DRAWIO_ALLOW_DESKTOP_EXPORT=1`. That block is
-intentional when the resolved command is the official desktop binary. If you use
-`DRAWIO_CMD`, point it at a safer wrapper or renderer when possible; pointing it
-at the official desktop binary will still be treated as desktop export.
+Помощник может отказаться запускать настольное приложение, если не передать
+`--allow-desktop-export` или не задать `DRAWIO_ALLOW_DESKTOP_EXPORT=1`. Эта
+блокировка намеренная, когда найденная команда — официальный настольный
+бинарный файл. Если используешь `DRAWIO_CMD`, по возможности указывай более
+безопасную обертку или рендерер; путь к официальному настольному бинарному
+файлу все равно будет считаться настольным экспортом.
 
-If you need the raw CLI:
+Не запускай сырой настольный CLI прямо из агентского рабочего процесса. Сырые
+вызовы CLI обходят шлюз безопасности, поток согласования и единообразную
+обработку результата в `scripts/export_drawio.py`. Если человек явно просит
+ручную диагностику, повторяй флаги помощника только после выполнения тех же
+условий согласования настольного экспорта.
 
-```bash
-/Applications/draw.io.app/Contents/MacOS/draw.io -x -f png -e -b 10 -o diagram.drawio.png diagram.drawio
-```
+Полезные флаги помощника экспорта:
 
-Useful flags:
+- `-x`: режим экспорта;
+- `-f`: формат вывода;
+- `-e`: встроить XML диаграммы для `png`, `svg` и `pdf`;
+- `-b`: ширина рамки;
+- `-s`: масштаб;
+- `-t`: прозрачный фон для PNG;
+- `-a`: экспорт всех страниц для PDF;
+- `-p`: экспорт конкретной страницы, индекс с 1.
 
-- `-x`: export mode
-- `-f`: output format
-- `-e`: embed diagram XML for `png`, `svg`, and `pdf`
-- `-b`: border width
-- `-s`: scale
-- `-t`: transparent background for PNG
-- `-a`: export all pages for PDF
-- `-p`: export a specific page index, 1-based
+## Правила редактирования
 
-## Editing Rules
+- Сохраняй существующие ID при редактировании файла, если нет конкретной
+  структурной проблемы.
+- Оставляй `parent="1"`, если ты намеренно не вкладываешь ячейки или не
+  назначаешь пользовательский слой.
+- Экранируй пользовательский текст обычной XML-сериализацией, а не собирай
+  небезопасные строки вручную.
+- Предпочитай читаемые ID случайным GUID для сгенерированных файлов.
+- Используй `compressed="false"`, если пользователь явно не просит компактное
+  закодированное представление.
 
-- Preserve existing IDs when editing a file unless there is a concrete structural problem.
-- Keep `parent="1"` unless you intentionally nest cells or assign a custom layer.
-- Escape user-provided text through normal XML serialization instead of hand-assembling unsafe strings.
-- Prefer readable IDs over random GUIDs for generated files.
-- Use `compressed="false"` unless the user explicitly needs the compact encoded representation.
+## Диагностика проблем
 
-## Troubleshooting
+- Диаграмма открывается пустой:
+  - проверь, что ячейки `0` и `1` существуют, а фигуры используют правильный
+    `parent`.
+- Связи не отображаются:
+  - проверь отсутствующий дочерний `mxGeometry` или невалидные ID `source` и
+    `target`.
+- Путь связи меняется после повторного открытия:
+  - добавь явные промежуточные точки или другую геометрию связи, вместо того
+    чтобы полагаться на авторазводку draw.io.
+- Стрелки читаются в экспорте, но все еще проходят через тело диаграммы:
+  - сначала меняй компоновку, интервалы или разбивку страниц, потом переноси
+    маршрут в коридор периметра с явными точками.
+- Буквальный `\n` появляется в подписях:
+  - замени его на `<br>` и оставь `html=1`.
+- Экспорт падает:
+  - подтверди наличие настольного CLI draw.io, затем повтори через
+    `scripts/export_drawio.py --format ...`;
+  - если помощник говорит, что экспорт заблокирован в безопасном режиме,
+    остановись и сообщи ограничение, если ты прямо сейчас не запрашиваешь
+    разрешение повторно запустить тот же помощник с `--allow-desktop-export`;
+  - не заменяй официальный визуальный QA на `qlmanage`, браузерный рендеринг,
+    скриншоты из другого просмотрщика или любой другой путь экспорта вне
+    draw.io.
+- Экспортированный файл не редактируется в draw.io:
+  - используй `png`, `svg` или `pdf`, чтобы помощник мог встроить XML диаграммы.
 
-- Diagram opens blank:
-  - Check that cells `0` and `1` exist and that shapes use the correct `parent`.
-- Edges do not render:
-  - Check for a missing child `mxGeometry` or invalid `source` and `target` IDs.
-- Edge path changes after reopen:
-  - Add explicit waypoints or other edge geometry instead of relying on draw.io auto-routing.
-- Arrows are readable in export but still merge through the diagram body:
-  - Change layout, spacing, or page split first, then move the route to a
-    perimeter corridor with explicit points.
-- Literal `\n` appears in labels:
-  - Replace it with `<br>` and keep `html=1`.
-- Export fails:
-  - Confirm the draw.io desktop CLI exists, then retry with `scripts/export_drawio.py --format ...`.
-  - If the helper says export is blocked in safety mode, stop and report the
-    limitation unless you are actively requesting approval to rerun the same
-    helper with `--allow-desktop-export`.
-  - Do not substitute `qlmanage`, browser rendering, screenshots from another
-    viewer, or any other non-draw.io export path for official visual QA.
-- Exported file is not editable in draw.io:
-  - Use `png`, `svg`, or `pdf` so the helper can embed the diagram XML.
+## Корректность XML
 
-## XML Well-Formedness
+Когда генерируешь XML draw.io, результат должен быть корректным:
 
-When generating draw.io XML, the output must be well-formed:
-
-- Never include XML comments.
-- Escape special characters in attribute values.
-- Keep all `mxCell` IDs unique within a page.
-- Ensure every edge has a child `mxGeometry`.
-- Ensure connector routing is encoded in geometry rather than left to draw.io behavior.
-- For non-trivial routes, include explicit waypoint geometry and any needed side
-  anchoring rather than hoping draw.io will infer the correct corridor.
+- Никогда не добавляй XML-комментарии.
+- Экранируй специальные символы в значениях атрибутов.
+- Держи все ID `mxCell` уникальными внутри страницы.
+- Убедись, что у каждой связи есть дочерний `mxGeometry`.
+- Убедись, что маршрутизация коннекторов закодирована в геометрии, а не
+  оставлена на поведение draw.io.
+- Для нетривиальных маршрутов добавляй явную геометрию промежуточных точек и
+  нужную привязку к сторонам, вместо того чтобы надеяться, что draw.io угадает
+  правильный коридор.

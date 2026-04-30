@@ -1,179 +1,191 @@
-# Visual Directions For Draw.io Diagrams
+# Визуальные направления для диаграмм Draw.io
 
-Use this guide when the user asks for a cleaner, more polished, more modern, or
-more presentation-ready diagram, or when style is not specified and you need to
-propose alternatives.
+Используй это руководство, когда пользователь просит более чистую, полированную,
+современную или готовую к презентации диаграмму, либо когда стиль не задан и
+нужно предложить варианты.
 
-## How To Propose Directions
+## Как предлагать направления
 
-If style is not fixed, propose three contrasting directions:
+Если стиль не зафиксирован, предложи три контрастных направления:
 
-- one safe or business-like
-- one explanatory or editorial
-- one more expressive but still appropriate
+- спокойное или деловое;
+- объясняющее или редакторское;
+- более выразительное, но уместное.
 
-Each direction must change how the diagram reads: page structure, spacing, line
-weight, typography, color semantics, and label density. Do not present a simple
-palette swap as a new direction.
+Каждое направление должно менять чтение диаграммы: структуру страницы,
+интервалы, толщину линий, типографику, цветовую семантику и плотность подписей.
+Не выдавай простую смену палитры за новое направление.
 
-## Direction Matrix
+## Матрица направлений
 
-| Direction | Best for | Visual grammar | Diagram families | Editor/export fit | Risk |
+| Направление | Лучше всего подходит для | Визуальная грамматика | Семейства диаграмм | Совместимость с редактором и экспортом | Риск |
 |---|---|---|---|---|---|
-| Executive Systems Map | board updates, leadership reviews, architecture summaries | high-level zones, strong headers, low label density, clear ownership color | architecture, operating model, capability map | very safe for editor and export | too little detail for engineering readers |
-| Technical Systems | engineering architecture, AI pipelines, backend flows | modular boxes, precise routing, semantic color, mono accents only where useful | architecture, state, dependency, platform | very safe for editor and export | too dense if every system gets equal weight |
-| Operational Swimlanes | cross-team operations, handoffs, runbooks | swimlanes, phase markers, explicit responsibilities, readable edge labels | process, workflow, incident, approval | very safe for editor and export | lane borders can dominate if spacing is weak |
-| Product Journey | user journey, feature walkthroughs, lifecycle views | stage-based storytelling, touchpoints, supporting notes, product-friendly color | journey, service blueprint, flowchart | safe for editor and export | becomes vague if product steps are not concrete |
-| Research / Causal Map | research synthesis, hypothesis trees, causes and effects | clustered evidence, causal arrows, note-like callouts, medium label density | causal map, concept map, system map | export-safe, editor-medium when very dense | turns noisy if every relation is shown at once |
-| Teaching Visual Guide | classroom diagrams, training, explainers | guided reading path, larger labels, friendly spacing, explicit examples | flowchart, anatomy-like maps, explainers, concept maps | very safe for editor and export | can feel childish if tone is too playful |
-| Dataflow Blueprint | data movement, ingestion, analytics pipelines | channels, storage zones, event arrows, stronger line hierarchy | dataflow, platform, integration, ETL | very safe for editor and export | decorative pipe metaphors can distract |
-| Concept Poster Diagram | keynote visuals, section openers, one-idea diagrams | bold central statement, sparse nodes, poster rhythm, minimal labels | overview, thesis map, conceptual framing | export-safe, editor-medium | style can overpower substance |
+| Карта систем для руководства | обновления для совета, ревью руководства, архитектурные сводки | крупные зоны, сильные заголовки, низкая плотность подписей, понятный цвет владения | архитектура, операционная модель, карта возможностей | очень безопасно для редактора и экспорта | слишком мало деталей для инженерной аудитории |
+| Технические системы | инженерная архитектура, AI-конвейеры, backend-потоки | модульные блоки, точная маршрутизация, семантический цвет, моноакценты только по делу | архитектура, состояния, зависимости, платформа | очень безопасно для редактора и экспорта | слишком плотно, если каждая система получает равный вес |
+| Операционные swimlane | межкомандные операции, передачи, runbook | swimlane, маркеры фаз, явная ответственность, читаемые подписи связей | процесс, workflow, инцидент, согласование | очень безопасно для редактора и экспорта | границы дорожек начинают доминировать при слабых интервалах |
+| Продуктовый путь | пользовательский путь, обзор функций, жизненный цикл | повествование по этапам, точки контакта, поддерживающие заметки, продуктовый цвет | journey, service blueprint, flowchart | безопасно для редактора и экспорта | становится расплывчатым, если продуктовые шаги неконкретны |
+| Исследовательская или причинная карта | синтез исследований, деревья гипотез, причины и следствия | сгруппированные доказательства, причинные стрелки, заметки-выноски, средняя плотность подписей | причинная карта, концепт-карта, системная карта | безопасно для экспорта, средне для редактора при высокой плотности | становится шумной, если показать все отношения сразу |
+| Учебный визуальный гид | учебные диаграммы, тренинги, объяснения | направленный путь чтения, крупные подписи, дружелюбные интервалы, явные примеры | блок-схема, карты частей, объясняющие схемы, концепт-карты | очень безопасно для редактора и экспорта | может выглядеть детским, если тон слишком игровой |
+| Чертеж потока данных | движение данных, ingestion, аналитические конвейеры | каналы, зоны хранения, событийные стрелки, сильная иерархия линий | dataflow, платформа, интеграция, ETL | очень безопасно для редактора и экспорта | декоративные метафоры труб могут отвлекать |
+| Концептуальный постер | keynote-слайды, открывающие разделы, диаграммы одной идеи | сильное центральное утверждение, редкие узлы, постерный ритм, минимум подписей | обзор, карта тезиса, концептуальная рамка | безопасно для экспорта, средне для редактора | стиль может подавить содержание |
 
-## Executive Systems Map
+## Карта систем для руководства
 
-- Best for: executive briefings, steering committees, status snapshots, and
-  overview architecture pages that must reduce complexity quickly.
-- Overview page: 4-8 major zones, short labels, and one clear reading direction.
-- Dense detail page: only if needed; keep it as a secondary page with preserved
-  zone colors and stronger local grouping.
-- Typography: strong sans headings, short labels, no decorative mono.
-- Line weight: medium to strong for core flows.
-- Spacing: generous margins and wide separation between zones.
-- Color semantics: ownership or domain color, not technical status color unless
-  status is the point.
-- Label density: low.
-- Split into overview and detail when more than one audience needs the same
-  diagram.
-- Anti-patterns: squeezing engineering-level dependencies onto the summary page,
-  or filling every zone with tiny secondary labels.
+- Лучше всего подходит для брифингов руководства, управляющих комитетов, снимков
+  статуса и обзорных архитектурных страниц, где сложность нужно быстро снизить.
+- Обзорная страница: 4-8 крупных зон, короткие подписи и одно понятное
+  направление чтения.
+- Плотная детальная страница: только если нужна; держи ее вторичной страницей с
+  сохраненными цветами зон и более сильной локальной группировкой.
+- Типографика: сильные гротескные заголовки, короткие подписи, без декоративного
+  моношрифта.
+- Толщина линий: средняя или сильная для основных потоков.
+- Интервалы: щедрые поля и широкое разделение зон.
+- Цветовая семантика: цвет владения или домена, а не технического статуса, если
+  статус не является темой.
+- Плотность подписей: низкая.
+- Разделяй на обзор и детали, когда одной диаграммой пользуются разные
+  аудитории.
+- Антипаттерны: втиснуть инженерные зависимости на обзорную страницу или
+  заполнить каждую зону мелкими вторичными подписями.
 
-## Technical Systems
+## Технические системы
 
-- Best for: architecture diagrams, AI pipelines, runtime systems, backend and
-  platform explanations.
-- Overview page: major subsystems, trust boundaries, and the shortest visual path
-  for primary traffic.
-- Dense detail page: richer connectors, storage, queues, retries, or states, but
-  still grouped by subsystem.
-- Typography: readable sans with mono only for technical labels that benefit
-  from it.
-- Line weight: medium by default; stronger for primary paths than for background
-  dependencies.
-- Spacing: even, modular, and grid-aligned.
-- Color semantics: internal systems, external systems, data stores, and async
-  paths should have stable meanings.
-- Label density: medium.
-- Split when the full system would require scrolling or unreadable connectors at
-  normal zoom.
-- Anti-patterns: twenty equal-weight nodes, pseudo-code as texture, or thin
-  arrows that disappear at ordinary zoom.
+- Лучше всего подходит для архитектурных диаграмм, AI-конвейеров, runtime-систем,
+  backend- и платформенных объяснений.
+- Обзорная страница: крупные подсистемы, границы доверия и кратчайший визуальный
+  путь для основного трафика.
+- Плотная детальная страница: больше коннекторов, хранилища, очереди, повторы
+  или состояния, но все еще сгруппированные по подсистемам.
+- Типографика: читаемый гротеск с моношрифтом только для технических подписей,
+  которым он помогает.
+- Толщина линий: средняя по умолчанию; основные пути сильнее фоновых
+  зависимостей.
+- Интервалы: ровные, модульные, привязанные к сетке.
+- Цветовая семантика: внутренние системы, внешние системы, хранилища данных и
+  асинхронные пути должны иметь устойчивые значения.
+- Плотность подписей: средняя.
+- Разделяй, когда полная система потребовала бы прокрутки или нечитаемых
+  коннекторов при обычном масштабе.
+- Антипаттерны: двадцать узлов с равным весом, псевдокод как фактура или тонкие
+  стрелки, исчезающие при обычном масштабе.
 
-## Operational Swimlanes
+## Операционные swimlane
 
-- Best for: approvals, multi-team workflows, incident response, support
-  operations, and process ownership maps.
-- Overview page: phases or actors across clearly separated lanes with a single
-  primary path.
-- Dense detail page: exception paths, loops, and escalation branches inside the
-  same lane system.
-- Typography: steady sans labels with strong lane titles.
-- Line weight: medium with clearly readable arrowheads.
-- Spacing: extra breathing room near lane borders so lines do not visually merge
-  with them.
-- Color semantics: one neutral lane system plus one signal color for decisions,
-  exceptions, or SLAs.
-- Label density: medium.
-- Split when one page would mix overview ownership and every exception branch.
-- Anti-patterns: treating lane borders as decoration, stacking nodes too close to
-  lane edges, or letting edge labels sit on top of borders.
+- Лучше всего подходит для согласований, межкомандных workflow, реагирования на
+  инциденты, поддержки и карт владения процессом.
+- Обзорная страница: фазы или акторы в четко разделенных дорожках с одним
+  основным путем.
+- Плотная детальная страница: исключения, петли и ветки эскалации внутри той же
+  системы дорожек.
+- Типографика: ровные гротескные подписи с сильными заголовками дорожек.
+- Толщина линий: средняя, с хорошо читаемыми наконечниками стрелок.
+- Интервалы: дополнительный воздух возле границ дорожек, чтобы линии с ними не
+  сливались.
+- Цветовая семантика: одна нейтральная система дорожек плюс один сигнальный цвет
+  для решений, исключений или SLA.
+- Плотность подписей: средняя.
+- Разделяй, когда одна страница смешала бы обзор владения и все ветки
+  исключений.
+- Антипаттерны: считать границы дорожек украшением, ставить узлы слишком близко
+  к краям дорожек или позволять подписям связей лежать поверх границ.
 
-## Product Journey
+## Продуктовый путь
 
-- Best for: user journeys, onboarding flows, lifecycle experiences, and product
-  walkthroughs that need a narrative feel.
-- Overview page: stages or milestones with clear progression and a few decisive
-  touchpoints.
-- Dense detail page: supporting notes, backstage systems, or handoffs beneath
-  the main user path.
-- Typography: product-friendly sans, short phrases, and helpful subtitles.
-- Line weight: medium, with a clear dominant path and quieter secondary links.
-- Spacing: airy enough that each stage reads as a chapter.
-- Color semantics: stages or personas first, not arbitrary rainbow accents.
-- Label density: low to medium.
-- Split when one page would have both user path storytelling and system detail.
-- Anti-patterns: generic startup gradients, vague verbs, or calling something a
-  journey when it is really an internal process map.
+- Лучше всего подходит для пользовательских путей, onboarding-потоков, жизненных
+  циклов и продуктовых walkthrough, которым нужен повествовательный характер.
+- Обзорная страница: этапы или вехи с понятным продвижением и несколькими
+  решающими точками контакта.
+- Плотная детальная страница: поддерживающие заметки, backstage-системы или
+  передачи под основным пользовательским путем.
+- Типографика: продуктовый гротеск, короткие фразы и полезные подзаголовки.
+- Толщина линий: средняя, с явным доминирующим путем и более тихими вторичными
+  связями.
+- Интервалы: достаточно воздуха, чтобы каждый этап читался как глава.
+- Цветовая семантика: сначала этапы или персоны, а не случайные радужные
+  акценты.
+- Плотность подписей: низкая или средняя.
+- Разделяй, когда одна страница содержала бы и историю пользовательского пути, и
+  системные детали.
+- Антипаттерны: типовые startup-градиенты, расплывчатые глаголы или название
+  «путь» для внутренней карты процесса.
 
-## Research / Causal Map
+## Исследовательская или причинная карта
 
-- Best for: research synthesis, causal explanations, hypothesis trees, and
-  diagrams that connect evidence to interpretation.
-- Overview page: 3-6 clusters with clear causal or thematic links.
-- Dense detail page: supporting evidence notes, qualifiers, or sub-clusters that
-  preserve the top-level grouping.
-- Typography: readable sans with note-like secondary text.
-- Line weight: medium for primary causes, lighter for supporting or uncertain
-  links.
-- Spacing: clustered, but never so tight that notes become a wall of text.
-- Color semantics: claim, evidence, risk, and open question can each carry a
-  stable role.
-- Label density: medium to high.
-- Split when causal clarity is lost under too many edges or annotations.
-- Anti-patterns: showing every possible relationship, or using identical visual
-  weight for certainty and speculation.
+- Лучше всего подходит для синтеза исследований, причинных объяснений, деревьев
+  гипотез и диаграмм, которые соединяют доказательства с интерпретацией.
+- Обзорная страница: 3-6 кластеров с понятными причинными или тематическими
+  связями.
+- Плотная детальная страница: поддерживающие заметки с доказательствами,
+  оговорки или подкластер, который сохраняет верхнеуровневую группировку.
+- Типографика: читаемый гротеск с вторичным текстом в стиле заметок.
+- Толщина линий: средняя для основных причин, легче для поддерживающих или
+  неопределенных связей.
+- Интервалы: кластерные, но не настолько тесные, чтобы заметки превращались в
+  стену текста.
+- Цветовая семантика: утверждение, доказательство, риск и открытый вопрос могут
+  иметь устойчивые роли.
+- Плотность подписей: средняя или высокая.
+- Разделяй, когда причинная ясность теряется из-за избытка связей или
+  аннотаций.
+- Антипаттерны: показывать все возможные отношения или давать одинаковый
+  визуальный вес уверенности и предположению.
 
-## Teaching Visual Guide
+## Учебный визуальный гид
 
-- Best for: classroom diagrams, training material, concept explainers, and
-  step-by-step educational visuals.
-- Overview page: one clear reading path with larger labels and explicit anchors.
-- Dense detail page: annotated examples, supporting notes, or decomposed parts
-  with stable callouts.
-- Typography: larger sans labels and very clear hierarchy.
-- Line weight: medium to strong so the reading path survives projection or
-  printed review.
-- Spacing: roomy and forgiving, especially around notes and examples.
-- Color semantics: a small friendly palette with stable roles such as concept,
-  example, warning, and result.
-- Label density: low to medium.
-- Split when the explanatory page would otherwise become a reference sheet.
-- Anti-patterns: replacing real explanation with decoration, or making it look
-  playful when the audience or topic needs seriousness.
+- Лучше всего подходит для школьных диаграмм, учебных материалов, объяснения
+  понятий и пошаговых образовательных визуалов.
+- Обзорная страница: один ясный путь чтения с крупными подписями и явными
+  опорами.
+- Плотная детальная страница: размеченные примеры, поддерживающие заметки или
+  разобранные части со стабильными выносками.
+- Типографика: более крупные гротескные подписи и очень ясная иерархия.
+- Толщина линий: средняя или сильная, чтобы путь чтения выдержал проектор или
+  печатный просмотр.
+- Интервалы: свободные и forgiving, особенно вокруг заметок и примеров.
+- Цветовая семантика: небольшая дружелюбная палитра со стабильными ролями вроде
+  понятия, примера, предупреждения и результата.
+- Плотность подписей: низкая или средняя.
+- Разделяй, когда объясняющая страница иначе превратилась бы в справочный лист.
+- Антипаттерны: заменять объяснение украшением или делать вид слишком игровым,
+  когда аудитории или теме нужна серьезность.
 
-## Dataflow Blueprint
+## Чертеж потока данных
 
-- Best for: ETL flows, ingestion pipelines, event systems, analytics platforms,
-  and integration maps.
-- Overview page: ingress, transformation, storage, and consumption arranged as
-  clearly distinct zones.
-- Dense detail page: protocols, queues, jobs, schemas, and failure or retry
-  paths.
-- Typography: practical sans; use mono sparingly for topic names, schema names,
-  or event labels.
-- Line weight: strongest on main data paths, lighter on control or metadata
-  paths.
-- Spacing: wide channels between pipeline stages.
-- Color semantics: storage, compute, external source, consumer, and async event
-  roles stay consistent.
-- Label density: medium.
-- Split when the full pipeline has both conceptual overview and operational
-  detail.
-- Anti-patterns: decorative pipes, forcing every topic name onto the overview
-  page, or equal visual emphasis for data and control flows.
+- Лучше всего подходит для ETL-потоков, ingestion-конвейеров, событийных систем,
+  аналитических платформ и карт интеграций.
+- Обзорная страница: вход, трансформация, хранение и потребление расположены как
+  четко разные зоны.
+- Плотная детальная страница: протоколы, очереди, задания, схемы, пути сбоя или
+  повтора.
+- Типографика: практичный гротеск; моношрифт используй сдержанно для имен тем,
+  схем или событий.
+- Толщина линий: самая сильная на основных путях данных, легче на управляющих
+  путях или метаданных.
+- Интервалы: широкие каналы между этапами конвейера.
+- Цветовая семантика: роли хранения, вычислений, внешнего источника,
+  потребителя и асинхронного события остаются едиными.
+- Плотность подписей: средняя.
+- Разделяй, когда полный конвейер содержит и концептуальный обзор, и
+  операционные детали.
+- Антипаттерны: декоративные трубы, попытка поместить каждое имя топика на
+  обзорную страницу или равный визуальный акцент для данных и управляющих
+  потоков.
 
-## Concept Poster Diagram
+## Концептуальный постер
 
-- Best for: keynote section openers, conceptual framing pages, one-idea
-  diagrams, and diagrams that need to land a strong thesis quickly.
-- Overview page: one dominant statement or node with a few supporting relations.
-- Dense detail page: usually avoid it; if needed, treat detail as a separate
-  explanatory page rather than a denser version of the poster.
-- Typography: bold, high-contrast, and intentionally sparse.
-- Line weight: strong and simple.
-- Spacing: very generous.
-- Color semantics: minimal palette with one clear accent.
-- Label density: very low.
-- Split when the poster concept needs a follow-up explanation page to stay
-  honest.
-- Anti-patterns: empty spectacle, oversized typography without informational
-  value, or calling a dense systems diagram a poster.
+- Лучше всего подходит для открывающих слайдов keynote, страниц начала раздела,
+  диаграмм одной идеи и схем, которые должны быстро донести сильный тезис.
+- Обзорная страница: одно доминирующее утверждение или узел с несколькими
+  поддерживающими отношениями.
+- Плотной детальной страницы обычно избегай; если она нужна, считай детали
+  отдельной объясняющей страницей, а не более плотной версией постера.
+- Типографика: жирная, контрастная и намеренно редкая.
+- Толщина линий: сильная и простая.
+- Интервалы: очень щедрые.
+- Цветовая семантика: минимальная палитра с одним ясным акцентом.
+- Плотность подписей: очень низкая.
+- Разделяй, когда постерной идее нужна следующая объясняющая страница, чтобы
+  остаться честной.
+- Антипаттерны: пустая зрелищность, огромная типографика без информационной
+  ценности или название «постер» для плотной системной диаграммы.

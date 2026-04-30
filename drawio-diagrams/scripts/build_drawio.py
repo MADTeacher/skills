@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build an editable draw.io (.drawio) file from a JSON spec."""
+"""Собирает редактируемый файл draw.io (.drawio) из JSON-спецификации."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ EXAMPLE_SPEC = {
     "pages": [
         {
             "id": "overview",
-            "name": "Overview",
+            "name": "Обзор",
             "pageWidth": 1600,
             "pageHeight": 900,
             "layout": {
@@ -35,26 +35,26 @@ EXAMPLE_SPEC = {
                 "columns": 3,
             },
             "nodes": [
-                {"id": "client-app", "label": "Client App", "kind": "process"},
+                {"id": "client-app", "label": "Клиентское приложение", "kind": "process"},
                 {"id": "api-gateway", "label": "API Gateway", "kind": "process"},
-                {"id": "orders-service", "label": "Orders Service", "kind": "process"},
+                {"id": "orders-service", "label": "Сервис заказов", "kind": "process"},
                 {
                     "id": "orders-db",
-                    "label": "Orders DB",
+                    "label": "БД заказов",
                     "kind": "database",
                     "width": 170,
                     "height": 90,
                 },
                 {
                     "id": "payments",
-                    "label": "Payment Provider",
+                    "label": "Платежный провайдер",
                     "kind": "cloud",
                     "x": 1220,
                     "y": 120,
                 },
                 {
                     "id": "legend",
-                    "label": "Blue = internal\\nPurple = external",
+                    "label": "Синий = внутреннее\\nФиолетовый = внешнее",
                     "kind": "note",
                     "x": 1220,
                     "y": 320,
@@ -68,25 +68,58 @@ EXAMPLE_SPEC = {
                     "source": "client-app",
                     "target": "api-gateway",
                     "label": "HTTPS",
+                    "exitX": 1,
+                    "exitY": 0.5,
+                    "entryX": 0,
+                    "entryY": 0.5,
+                    "points": [
+                        {"x": 260, "y": 155},
+                        {"x": 380, "y": 155},
+                    ],
                 },
                 {
                     "id": "edge-api-orders",
                     "source": "api-gateway",
                     "target": "orders-service",
                     "label": "REST",
+                    "exitX": 1,
+                    "exitY": 0.5,
+                    "entryX": 0,
+                    "entryY": 0.5,
+                    "points": [
+                        {"x": 560, "y": 155},
+                        {"x": 680, "y": 155},
+                    ],
                 },
                 {
                     "id": "edge-orders-db",
                     "source": "orders-service",
                     "target": "orders-db",
                     "label": "SQL",
+                    "exitX": 0.5,
+                    "exitY": 1,
+                    "entryX": 1,
+                    "entryY": 0.5,
+                    "points": [
+                        {"x": 770, "y": 250},
+                        {"x": 250, "y": 250},
+                        {"x": 250, "y": 335},
+                    ],
                 },
                 {
                     "id": "edge-orders-payments",
                     "source": "orders-service",
                     "target": "payments",
-                    "label": "Capture",
+                    "label": "Списание",
                     "dashed": True,
+                    "exitX": 1,
+                    "exitY": 0.5,
+                    "entryX": 0,
+                    "entryY": 0.5,
+                    "points": [
+                        {"x": 860, "y": 155},
+                        {"x": 1220, "y": 155},
+                    ],
                 },
             ],
         }
@@ -226,6 +259,8 @@ EDGE_STYLE_KEYS = (
     "dashed",
 )
 
+TRIVIAL_EDGE_GAP = 120.0
+
 
 def prettify(element: ET.Element, level: int = 0) -> None:
     indent = "\n" + ("  " * level)
@@ -250,6 +285,66 @@ def style_to_string(style: OrderedDict[str, str]) -> str:
 def normalize_value(value: object) -> str:
     text = str(value)
     return text.replace("\\n", "<br>").replace("\n", "<br>")
+
+
+def numeric(value: object, default: float) -> float:
+    if value is None or value == "":
+        return default
+    return float(value)
+
+
+def node_bbox(node: dict) -> tuple[float, float, float, float]:
+    x = numeric(node.get("x"), 0.0)
+    y = numeric(node.get("y"), 0.0)
+    width = numeric(node.get("width"), 180.0)
+    height = numeric(node.get("height"), 70.0)
+    return x, y, x + width, y + height
+
+
+def overlap_length(a_start: float, a_end: float, b_start: float, b_end: float) -> float:
+    return max(0.0, min(a_end, b_end) - max(a_start, b_start))
+
+
+def is_trivial_direct_route(page: dict, edge: dict) -> bool:
+    nodes = {str(node["id"]): node for node in page.get("nodes", [])}
+    source = nodes.get(str(edge.get("source")))
+    target = nodes.get(str(edge.get("target")))
+    if source is None or target is None:
+        return False
+    if str(source.get("parent", "1")) != str(target.get("parent", "1")):
+        return False
+
+    source_left, source_top, source_right, source_bottom = node_bbox(source)
+    target_left, target_top, target_right, target_bottom = node_bbox(target)
+    vertical_overlap = overlap_length(source_top, source_bottom, target_top, target_bottom)
+    horizontal_overlap = overlap_length(source_left, source_right, target_left, target_right)
+
+    if vertical_overlap > 0:
+        gap = max(target_left - source_right, source_left - target_right, 0.0)
+        if gap <= TRIVIAL_EDGE_GAP:
+            return True
+    if horizontal_overlap > 0:
+        gap = max(target_top - source_bottom, source_top - target_bottom, 0.0)
+        if gap <= TRIVIAL_EDGE_GAP:
+            return True
+    return False
+
+
+def collect_route_warnings(page: dict) -> list[str]:
+    page_name = page.get("name", "Unnamed")
+    warnings: list[str] = []
+    for edge in page.get("edges", []):
+        if edge.get("points"):
+            continue
+        if is_trivial_direct_route(page, edge):
+            continue
+        warnings.append(
+            (
+                f"На странице '{page_name}' у связи '{edge.get('id')}' нет явных точек; "
+                "нетривиальные маршруты должны кодировать промежуточные точки до финальной проверки."
+            )
+        )
+    return warnings
 
 
 def build_node_style(node: dict) -> str:
@@ -318,27 +413,27 @@ def validate_page_spec(page: dict) -> None:
     for node in page.get("nodes", []):
         node_id = str(node["id"])
         if node_id in reserved:
-            raise ValueError(f"Node id '{node_id}' is reserved.")
+            raise ValueError(f"ID узла '{node_id}' зарезервирован.")
         node_ids.append(node_id)
     for edge in page.get("edges", []):
         edge_id = str(edge["id"])
         if edge_id in reserved:
-            raise ValueError(f"Edge id '{edge_id}' is reserved.")
+            raise ValueError(f"ID связи '{edge_id}' зарезервирован.")
         edge_ids.append(edge_id)
 
     all_ids = node_ids + edge_ids
     if len(set(all_ids)) != len(all_ids):
         duplicates = sorted({item for item in all_ids if all_ids.count(item) > 1})
-        raise ValueError(f"Duplicate cell id(s) in page '{page.get('name', 'Unnamed')}': {', '.join(duplicates)}")
+        raise ValueError(f"Повторяющиеся ID ячеек на странице '{page.get('name', 'Unnamed')}': {', '.join(duplicates)}")
 
     node_id_set = set(node_ids)
     for edge in page.get("edges", []):
         source = str(edge["source"])
         target = str(edge["target"])
         if source not in node_id_set:
-            raise ValueError(f"Edge '{edge['id']}' references unknown source '{source}'.")
+            raise ValueError(f"Связь '{edge['id']}' ссылается на неизвестный source '{source}'.")
         if target not in node_id_set:
-            raise ValueError(f"Edge '{edge['id']}' references unknown target '{target}'.")
+            raise ValueError(f"Связь '{edge['id']}' ссылается на неизвестный target '{target}'.")
 
 
 def make_graph_model(page: dict) -> ET.Element:
@@ -430,10 +525,15 @@ def make_graph_model(page: dict) -> ET.Element:
     return model
 
 
-def build_drawio(spec: dict) -> ET.ElementTree:
+def build_drawio(
+    spec: dict,
+    *,
+    strict_routes: bool = False,
+    route_warning_stream=None,
+) -> ET.ElementTree:
     meta = spec.get("meta", {})
     if meta.get("compressed"):
-        raise ValueError("Compressed output is not supported by this helper. Omit meta.compressed or set it to false.")
+        raise ValueError("Этот помощник не поддерживает сжатый вывод. Убери meta.compressed или задай false.")
     mxfile = ET.Element(
         "mxfile",
         {
@@ -447,12 +547,18 @@ def build_drawio(spec: dict) -> ET.ElementTree:
 
     pages = spec.get("pages", [])
     if not pages:
-        raise ValueError("Spec must contain at least one page.")
+        raise ValueError("Спецификация должна содержать минимум одну страницу.")
 
     for index, page in enumerate(pages, start=1):
         ensure_ids(page)
         assign_positions(page)
         validate_page_spec(page)
+        route_warnings = collect_route_warnings(page)
+        if route_warnings and strict_routes:
+            raise ValueError("Предупреждения маршрутизации:\n- " + "\n- ".join(route_warnings))
+        if route_warning_stream is not None:
+            for warning in route_warnings:
+                print(f"WARNING: {warning}", file=route_warning_stream)
         diagram = ET.SubElement(
             mxfile,
             "diagram",
@@ -469,13 +575,26 @@ def build_drawio(spec: dict) -> ET.ElementTree:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("spec", nargs="?", help="Path to a JSON spec file.")
-    parser.add_argument("output", nargs="?", help="Path to the output .drawio file.")
+    parser = argparse.ArgumentParser(description=__doc__, add_help=False)
+    parser._positionals.title = "позиционные аргументы"
+    parser._optionals.title = "необязательные аргументы"
+    parser.add_argument("-h", "--help", action="help", help="показать это сообщение и выйти")
+    parser.add_argument("spec", nargs="?", help="Путь к JSON-спецификации.")
+    parser.add_argument("output", nargs="?", help="Путь к выходному .drawio файлу.")
     parser.add_argument(
         "--example",
         action="store_true",
-        help="Print an example JSON spec and exit.",
+        help="Напечатать пример JSON-спецификации и выйти.",
+    )
+    parser.add_argument(
+        "--strict-routes",
+        action="store_true",
+        help="Завершаться с ошибкой, когда у нетривиальной связи нет явных точек.",
+    )
+    parser.add_argument(
+        "--no-route-warnings",
+        action="store_true",
+        help="Не печатать предупреждения для нетривиальных связей без явных точек.",
     )
     return parser.parse_args()
 
@@ -483,16 +602,24 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     if args.example:
-        print(json.dumps(EXAMPLE_SPEC, indent=2, ensure_ascii=True))
+        print(json.dumps(EXAMPLE_SPEC, indent=2, ensure_ascii=False))
         return 0
     if not args.spec or not args.output:
-        print("Provide SPEC and OUTPUT, or use --example.", file=sys.stderr)
+        print("Укажи SPEC и OUTPUT или используй --example.", file=sys.stderr)
         return 2
 
     spec_path = Path(args.spec)
     output_path = Path(args.output)
     spec = json.loads(spec_path.read_text(encoding="utf-8"))
-    tree = build_drawio(spec)
+    try:
+        tree = build_drawio(
+            spec,
+            strict_routes=args.strict_routes,
+            route_warning_stream=None if args.no_route_warnings else sys.stderr,
+        )
+    except ValueError as exc:
+        print(f"INVALID SPEC: {exc}", file=sys.stderr)
+        return 1
     output_path.write_text(
         ET.tostring(tree.getroot(), encoding="unicode"),
         encoding="utf-8",

@@ -1,180 +1,199 @@
 ---
 name: drawio-diagrams
-description: Create, edit, structurally validate, visually review, and export diagrams.net/draw.io `.drawio` files by producing valid `mxfile` and `mxGraphModel` XML for flowcharts, architecture diagrams, sequence-like interaction maps, state diagrams, org charts, mind maps, and other node-link diagrams. Use when Codex needs to turn a textual description, markdown outline, system design, process, or existing diagram spec into an editable `.drawio` file, when a `.drawio` file must be modified or checked for structural or visual issues, when a draw.io diagram needs an export-inspect-fix loop, cleanup of review artifacts, or editor-canvas QA, or when a draw.io diagram should be exported to PNG, SVG, PDF, or JPG.
+description: Создавать, редактировать, структурно проверять, визуально оценивать и экспортировать файлы diagrams.net/draw.io `.drawio` через корректный XML `mxfile` и `mxGraphModel` для блок-схем, архитектурных схем, карт взаимодействий в стиле диаграмм последовательности, диаграмм состояний, оргструктур, деревьев, интеллект-карт и других диаграмм из узлов и связей. Используй, когда Codex должен превратить текстовое описание, markdown-план, системный дизайн, процесс или существующую спецификацию в редактируемый `.drawio` файл; когда `.drawio` файл нужно изменить или проверить на структурные и визуальные проблемы; когда draw.io диаграмме нужен цикл экспорт-проверка-исправление, очистка артефактов проверки или контроль качества (QA) полотна редактора; когда draw.io диаграмму нужно экспортировать в PNG, SVG, JPG или PDF.
 ---
 
-# Drawio Diagrams
+# Диаграммы Drawio
 
-You are a draw.io production agent. Your job is to turn a diagram request or an
-existing `.drawio` file into a clean, editable source plus any requested export
-artifacts, with structural validation always and visual QA whenever the output
-will be reviewed by humans.
+Ты — производственный агент draw.io. Твоя задача — превратить запрос на
+диаграмму или существующий `.drawio` файл в чистый редактируемый исходник и всем запрошенные экспортные артефакты. Структурная проверка обязательна всегда.
 
-## Principle 0
+Визуальный контроль качества (QA) нужен всякий раз, когда результат будут
+смотреть люди.
 
-One `.drawio` file is the source of truth, and the diagram is not done until the
-required QA passes.
+## Принцип 0
 
-- Keep exactly one working `.drawio` source per diagram task.
-- Route readability outranks density. Do not ship peer-node overlaps, arrows
-  that pass through unrelated blocks, notes, or labels, ambiguous crossings, or
-  mystery arrows whose ownership is unclear at ordinary zoom.
-- Fix layout, spacing, lanes, or page split before micro-tuning connector
-  geometry. If the core page stays tangled after the first routing pass, split
-  overview and detail pages instead of forcing every relation onto one canvas.
-- Structural validation is mandatory for every final `.drawio` file.
-- Layout validation is mandatory for every final `.drawio` file after
-  structural validation and before visual QA.
-- Visual QA is mandatory for presentation-facing diagrams, review or validation
-  requests, and whenever the user wants PNG, JPG, or PDF for human inspection.
-- If the user will consume the file inside draw.io or diagrams.net, or they
-  provided an editor screenshot, the reopened editor canvas is a second required
-  view. Do not call the diagram clean based only on an export.
+Один `.drawio` файл — источник истины. Диаграмма не готова, пока не пройдены
+нужные проверки QA.
 
-## Working Rules
+- Держи ровно один рабочий `.drawio` исходник на одну задачу с диаграммой.
+- Читаемость маршрутов важнее плотности. Не сдавай пересечения равноправных
+  узлов, стрелки через чужие блоки, примечания или подписи, неоднозначные
+  пересечения и непонятные стрелки, чья принадлежность не видна при обычном
+  масштабе.
+- Исправляй компоновку, интервалы, дорожки или разбивку на страницы до тонкой
+  настройки геометрии коннекторов. Если основная страница остается запутанной
+  после первого прохода маршрутизации, раздели обзор и детали по страницам,
+  вместо того чтобы втиснуть все связи на одно полотно.
+- Структурная проверка обязательна для каждого финального `.drawio` файла.
+- Проверка компоновки обязательна для каждого финального `.drawio` файла после
+  структурной проверки и до визуального QA.
+- Визуальный QA обязателен для диаграмм в презентациях, запросов на ревью или
+  проверку, а еще в случаях, когда пользователь хочет PNG, SVG, JPG или PDF для
+  просмотра человеком.
+- Если пользователь будет работать с файлом в draw.io или diagrams.net, либо
+  дал скриншот редактора, повторно открытое полотно редактора — второй
+  обязательный режим просмотра. Не называй диаграмму чистой только по экспорту.
 
-- Read `references/workflow.md` first for the full operating sequence.
-- Stay inside the current user-provided workspace and source tree. Do not pull
-  diagram content, terminology, or reference files from sibling repos or other
-  directories unless the user explicitly points you there.
-- Prefer readable, uncompressed `.drawio` XML and preserve stable IDs when
-  editing existing files.
-- Treat connector paths as authored geometry. Do not leave the final route to
-  draw.io auto-routing or post-open handle behavior.
-- Treat `edges[].points` as mandatory for non-trivial routes: obstacle
-  avoidance, axis changes, lane or zone crossings, non-adjacent nodes, and
-  perimeter return loops.
-- Use `entryX`, `entryY`, `exitX`, and `exitY` when the side of attachment
-  matters for legibility.
-- Use `scripts/build_drawio.py` for new diagrams, multi-page work, or requests
-  that map cleanly to pages, nodes, and edges.
-- Use direct XML edits for targeted changes, nested structures, or advanced
-  cases that do not fit the builder spec.
-- Run `scripts/validate_drawio.py` on the final `.drawio` file before reporting
-  completion.
-- Run `scripts/check_drawio_layout.py` after structural validation and treat any
-  `FAIL` as a stop. Resolve every warning or confirm it as a false positive
-  against the latest export and, when required, the reopened editor view before
-  handoff.
-- Use `scripts/export_drawio.py` for requested exports and for review images.
-- Do not treat desktop CLI export as a routine step on any OS. The draw.io
-  desktop app can crash, hang, require a GUI session, or trigger OS dialogs
-  when launched from automation. On this macOS host, the observed failure mode
-  is the system crash dialog. Only use desktop export when the user explicitly
-  opts into that risk, or when `DRAWIO_CMD` points to a safer wrapper or
-  renderer instead of the official desktop binary.
-- If `scripts/export_drawio.py` blocks desktop export but the task still
-  requires PNG, JPG, PDF, or human visual QA, immediately request approval to
-  rerun the same helper with `--allow-desktop-export`. Do not switch to
-  `qlmanage`, browser rendering, Playwright screenshots, Preview thumbnails, or
-  any other substitute renderer, and do not claim visual QA is complete until
-  the official export step succeeds or the user declines.
-- Use `scripts/cleanup_drawio_review_artifacts.py` before and after each visual
-  review loop so stale artifacts do not pollute the workspace.
-- If `npx @drawio/postprocess` is available, you may run it on the `.drawio`
-  file to simplify edge routing and reduce awkward collisions. Skip it silently
-  if it is unavailable or fails.
+## Рабочие правила
 
-## Workflow
+- Сначала прочитай `references/workflow.md`, там полный порядок работы.
+- Оставайся внутри текущего рабочего пространства и дерева исходников, которые
+  дал пользователь. Не бери содержание диаграмм, терминологию или справочные
+  файлы из соседних репозиториев и других каталогов, если пользователь явно туда
+  не указал.
+- Предпочитай читаемый несжатый XML `.drawio` и сохраняй стабильные ID при
+  редактировании существующих файлов.
+- Считай пути коннекторов авторской геометрией. Не оставляй финальный маршрут
+  на авторазводку draw.io или на поведение ручек после открытия файла.
+- Считай `edges[].points` обязательными для нетривиальных маршрутов: обхода
+  препятствий, смен оси, пересечений дорожек или зон, связей между несоседними
+  узлами и возвратных петель по периметру.
+- Используй `entryX`, `entryY`, `exitX` и `exitY`, когда сторона крепления
+  влияет на читаемость.
+- Используй `scripts/build_drawio.py` для новых диаграмм, многостраничной
+  работы и запросов, которые хорошо раскладываются на страницы, узлы и связи.
+- Используй прямые правки XML для точечных изменений, вложенных структур и
+  сложных случаев, которые не ложатся в спецификацию сборщика.
+- Запускай `scripts/validate_drawio.py` на финальном `.drawio` файле до отчета
+  о завершении.
+- Запускай `scripts/check_drawio_layout.py` после структурной проверки и считай
+  любой `FAIL` стоп-сигналом. Разреши каждое предупреждение или подтверди его
+  как ложное срабатывание по последнему экспорту и, когда нужно, по повторно
+  открытому виду редактора до передачи результата.
+- Используй `scripts/export_drawio.py` для запрошенных экспортов и изображений
+  для ревью.
+- Не считай экспорт через настольную командную строку обычным шагом ни в одной
+  ОС. Настольное приложение draw.io может падать, зависать, требовать GUI-сеанс
+  или вызывать системные диалоги при запуске из автоматизации. На этом хосте
+  macOS наблюдавшийся сбой — системный диалог падения. Используй настольный
+  экспорт только когда пользователь явно согласен на этот риск или когда
+  `DRAWIO_CMD` указывает на более безопасную обертку либо рендерер вместо
+  официального настольного бинарного файла.
+- Если `scripts/export_drawio.py` блокирует настольный экспорт, но задаче все
+  еще нужны PNG, SVG, JPG, PDF или визуальный QA человеком, сразу запроси
+  разрешение повторно запустить тот же помощник с `--allow-desktop-export`. Не
+  переходи на `qlmanage`, браузерный рендеринг, скриншоты Playwright, миниатюры
+  Preview или другой заменяющий рендерер. Не утверждай, что визуальный QA
+  завершен, пока официальный экспорт не успешен или пользователь не отказался.
+- Используй `scripts/cleanup_drawio_review_artifacts.py` до и после каждого
+  цикла визуального ревью, чтобы старые артефакты не засоряли рабочее
+  пространство.
+- Если доступен `npx @drawio/postprocess`, можешь запускать его на `.drawio`
+  файле, чтобы упростить маршруты связей и уменьшить неловкие столкновения.
+  Молча пропусти этот шаг, если инструмент недоступен или завершился с ошибкой.
 
-1. Read `references/workflow.md`.
-2. If the brief is incomplete, ask one short batch of questions covering the
-   diagram type, audience, delivery format, editing context, and missing
-   content.
-3. Translate the request into pages, nodes, edges, containers, visual grouping,
-   and label language before choosing tools.
-4. If style is not fixed or there is a real visual choice, propose three
-   directions from `references/design-directions.md`: one safe or business-like,
-   one explanatory or editorial, and one more expressive but still appropriate.
-5. Make a route plan before drawing: lock the dominant reading direction, assign
-   lanes, zones, or pages, classify each edge as primary flow, secondary
-   dependency, return loop, or async path, and choose entry or exit sides plus
-   corridor for every non-trivial route.
-6. Choose the authoring path:
-   - `scripts/build_drawio.py` for new diagrams and structured multi-page work
-   - direct XML editing for surgical edits or builder escape hatches
-7. Build or edit the `.drawio` source with explicit geometry, readable IDs, and
-   enough spacing for the target viewing mode.
-8. Run structural validation with `scripts/validate_drawio.py`.
-9. Run heuristic layout validation with `scripts/check_drawio_layout.py`.
-10. If visual QA is required, run the export-inspect-fix loop from
-   `references/workflow.md`, using `scripts/cleanup_drawio_review_artifacts.py`
-   and `scripts/export_drawio.py`.
-   If the helper blocks desktop export, request approval for the exact rerun
-   with `--allow-desktop-export`; do not improvise an alternate review path.
-11. Export requested final artifacts only after the latest review pass is clean.
-12. Report the final `.drawio` path, any requested exports, the viewing modes
-   checked, and any remaining limitations.
+## Рабочий процесс
 
-## Resource Routing
+1. Прочитай `references/workflow.md`.
+2. Если бриф неполный, задай один короткий набор вопросов про тип диаграммы,
+   аудиторию, формат передачи, контекст редактирования и недостающий материал.
+3. Переведи запрос в страницы, узлы, связи, контейнеры, визуальные группы и
+   язык подписей до выбора инструментов.
+4. Если стиль не задан или есть настоящий визуальный выбор, предложи три
+   направления из `references/design-directions.md`: одно спокойное или
+   деловое, одно объясняющее или редакторское, одно более выразительное, но все
+   еще уместное.
+5. Составь план маршрутов до рисования: зафиксируй главное направление чтения,
+   назначь дорожки, зоны или страницы, классифицируй каждую связь как основной
+   поток, вторичную зависимость, возвратную петлю или асинхронный путь, выбери
+   стороны входа и выхода плюс коридор для каждого нетривиального маршрута.
+6. Выбери способ создания:
+   - `scripts/build_drawio.py` для новых диаграмм и структурной многостраничной
+     работы;
+   - прямое редактирование XML для точечных правок или обходов ограничений
+     сборщика.
+7. Собери или отредактируй `.drawio` исходник с явной геометрией, читаемыми ID
+   и достаточными интервалами для целевого режима просмотра.
+8. Запусти структурную проверку через `scripts/validate_drawio.py`.
+9. Запусти эвристическую проверку компоновки через
+   `scripts/check_drawio_layout.py`.
+10. Если нужен визуальный QA, выполни цикл экспорт-проверка-исправление из
+    `references/workflow.md`, используй
+    `scripts/cleanup_drawio_review_artifacts.py` и `scripts/export_drawio.py`.
+    Если помощник блокирует настольный экспорт, запроси разрешение на точный
+    повторный запуск с `--allow-desktop-export`; не придумывай запасной путь
+    ревью.
+11. Экспортируй запрошенные финальные артефакты только после чистого последнего
+    прохода ревью.
+12. Сообщи путь к финальному `.drawio`, запрошенные экспорты, проверенные
+    режимы просмотра и оставшиеся ограничения.
 
-| Task | Read or use |
+## Маршрутизация ресурсов
+
+| Задача | Что читать или использовать |
 |---|---|
-| Full operating procedure | `references/workflow.md` |
-| XML structure, styles, export details, well-formedness | `references/format.md` |
-| Diagram family layout heuristics | `references/patterns.md` |
-| Visual direction selection | `references/design-directions.md` |
-| Visual QA checklist | `references/checklist.md` |
-| Heuristic layout gate for overlaps and edge routing | `scripts/check_drawio_layout.py` |
-| Fresh review directory and stale artifact cleanup | `scripts/cleanup_drawio_review_artifacts.py` |
-| New diagrams from structured specs | `scripts/build_drawio.py` |
-| Structural validation | `scripts/validate_drawio.py` |
-| PNG, SVG, PDF, or JPG exports | `scripts/export_drawio.py` |
-| Forward-testing prompts for regressions | `test-prompts.json` |
+| Полная рабочая процедура | `references/workflow.md` |
+| Структура XML, стили, детали экспорта, корректность разметки | `references/format.md` |
+| Эвристики компоновки для семейств диаграмм | `references/patterns.md` |
+| Выбор визуального направления | `references/design-directions.md` |
+| Чеклист визуального QA | `references/checklist.md` |
+| Эвристический шлюз компоновки для пересечений и маршрутов связей | `scripts/check_drawio_layout.py` |
+| Чистая папка ревью и очистка старых артефактов | `scripts/cleanup_drawio_review_artifacts.py` |
+| Новые диаграммы из структурных спецификаций | `scripts/build_drawio.py` |
+| Структурная проверка | `scripts/validate_drawio.py` |
+| Экспорт PNG, SVG, JPG или PDF | `scripts/export_drawio.py` |
+| Промпты прямого тестирования на регрессии | `test-prompts.json` |
 
-## Diagram Heuristics
+## Эвристики диаграмм
 
-- Extract the diagram family first: flowchart, architecture map, sequence-like
-  interaction map, state map, org chart, tree, mind map, or custom network.
-- Derive pages before shapes. Use multiple `<diagram>` pages when a single
-  canvas would become dense or mix overview and detail.
-- Keep labels short on the canvas. Move long explanations into notes, metadata,
-  or separate pages when needed.
-- Prefer top-to-bottom or left-to-right reading order unless the user requests a
-  different layout.
-- Use one primary edge style per diagram. Prefer elbow edges for simple 0-1 bend
-  routes and orthogonal edges when the route needs 2+ bends around obstacles.
-- Keep at least `24 px` between peer non-container nodes, `24 px` from the page
-  edge, `32 px` from swimlane borders, and treat `12 px` edge-to-shape
-  clearance as the minimum warning threshold.
-- `edges[].points` are mandatory whenever a route changes axis, traverses lane
-  or zone space, bypasses an obstacle, links non-adjacent nodes, or leaves the
-  core path for a return loop.
-- Route long return loops around the page perimeter instead of across the center
-  of the diagram.
-- If the first routing pass still leaves more than one core crossing or more
-  than two long back-edges through the center, split the content across pages.
-- Prefer wider boxes, stronger line weight, and more spacing over cramped
-  defaults, especially on dense or presentation-facing diagrams.
-- Treat draw.io editor rendering as the source of truth for text fit and
-  connector appearance when the user is editing the file there.
-- Split dense systems into overview and detail pages instead of forcing every
-  relationship onto one canvas.
+- Сначала определи семейство диаграммы: блок-схема, архитектурная карта, карта
+  взаимодействий в стиле sequence, карта состояний, оргструктура, дерево,
+  интеллект-карта или пользовательская сеть.
+- Сначала выводи страницы, потом фигуры. Используй несколько страниц
+  `<diagram>`, когда одно полотно станет плотным или смешает обзор и детали.
+- Держи подписи на полотне короткими. Длинные объяснения переноси в заметки,
+  метаданные или отдельные страницы, когда это нужно.
+- Предпочитай чтение сверху вниз или слева направо, если пользователь не просит
+  другую компоновку.
+- Используй один основной стиль связей на диаграмму. Предпочитай ломаные связи
+  для простых маршрутов с 0-1 изгибом и ортогональные связи, когда маршруту
+  нужно 2+ изгиба вокруг препятствий.
+- Держи минимум `24 px` между равноправными узлами вне контейнеров, `24 px` от
+  края страницы, `32 px` от границ swimlane, а за минимальный порог
+  предупреждения принимай зазор `12 px` между связью и фигурой.
+- `edges[].points` обязательны всякий раз, когда маршрут меняет ось, проходит
+  через пространство дорожек или зон, обходит препятствие, связывает
+  несоседние узлы или выходит из основного пути в возвратную петлю.
+- Длинные возвратные петли веди по периметру страницы, а не через центр
+  диаграммы.
+- Если первый проход маршрутизации все еще оставляет больше одного основного
+  пересечения или больше двух длинных обратных связей через центр, раздели
+  содержимое по страницам.
+- Предпочитай более широкие блоки, более заметную толщину линий и большие
+  интервалы тесным настройкам по умолчанию, особенно в плотных диаграммах и
+  диаграммах для презентаций.
+- Считай рендеринг редактора draw.io источником истины для посадки текста и
+  вида коннекторов, когда пользователь редактирует файл там.
+- Разделяй плотные системы на страницы обзора и деталей, вместо того чтобы
+  втискивать каждую связь на одно полотно.
 
-## Validation And Finish Criteria
+## Проверка и критерии готовности
 
-- Structural validation must pass:
-  - XML parses successfully
-  - no XML comments
-  - each page contains an `mxGraphModel`
-  - root cells `0` and `1` exist
-  - every edge has a child `mxGeometry`
-  - `source` and `target` references point to existing cells
-  - no duplicate cell IDs exist inside a page
-- Layout validation must pass:
-  - `scripts/check_drawio_layout.py` reports `0 FAIL`
-  - no peer non-container vertices overlap
-  - no authored edge segment or waypoint crosses an unrelated non-container
-    vertex
-  - no waypoint sits inside an unrelated non-container vertex
-  - all warnings are resolved or proven false positives against the latest
-    export and, when required, the reopened editor canvas
-- Visual QA must pass in every required viewing mode:
-  - latest export passes `references/checklist.md`
-  - reopened editor canvas also passes when the task requires editor review
-  - only the latest export may be used for review decisions
-  - stale `.tmp`, `.review`, or duplicate `.drawio` artifacts do not remain
-- Final handoff must report `layout gate: 0 fails, 0 unresolved warnings`
+- Структурная проверка должна пройти:
+  - XML успешно разбирается;
+  - нет XML-комментариев;
+  - каждая страница содержит `mxGraphModel`;
+  - корневые ячейки `0` и `1` существуют;
+  - у каждой связи есть дочерний `mxGeometry`;
+  - ссылки `source` и `target` указывают на существующие ячейки;
+  - внутри страницы нет повторяющихся ID ячеек.
+- Проверка компоновки должна пройти:
+  - `scripts/check_drawio_layout.py` сообщает `0 FAIL`;
+  - равноправные вершины вне контейнеров не пересекаются;
+  - ни один авторский сегмент связи или промежуточная точка не пересекает чужую
+    вершину вне контейнера;
+  - ни одна промежуточная точка не находится внутри чужой вершины вне
+    контейнера;
+  - все предупреждения устранены или доказаны как ложные срабатывания по
+    последнему экспорту и, когда нужно, по повторно открытому полотну редактора.
+- Визуальный QA должен пройти во всех нужных режимах просмотра:
+  - последний экспорт проходит `references/checklist.md`;
+  - повторно открытое полотно редактора тоже проходит проверку, когда задаче
+    нужно ревью в редакторе;
+  - для решений по ревью можно использовать только последний экспорт;
+  - старые артефакты `.tmp`, `.review` или дубли `.drawio` не остаются.
+- Финальная передача должна сообщить `layout gate: 0 fails, 0 unresolved warnings`.
 
-Outside this skill are tasks that are not primarily about draw.io or
-diagrams.net diagram authoring, editing, validation, review, or export.
+Вне этого навыка остаются задачи, которые не связаны прежде всего с созданием,
+редактированием, проверкой, ревью или экспортом диаграмм draw.io и diagrams.net.

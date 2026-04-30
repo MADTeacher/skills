@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Heuristic layout QA for draw.io (.drawio) files."""
+"""Эвристический QA компоновки для файлов draw.io (.drawio)."""
 
 from __future__ import annotations
 
@@ -137,7 +137,7 @@ def decode_diagram(diagram: ET.Element) -> ET.Element:
 
     payload = (diagram.text or "").strip()
     if not payload:
-        raise ValueError(f"Diagram '{diagram.get('name', 'Unnamed')}' does not contain mxGraphModel data.")
+        raise ValueError(f"Диаграмма '{diagram.get('name', 'Unnamed')}' не содержит данных mxGraphModel.")
 
     raw = base64.b64decode(payload)
     inflated = zlib.decompress(raw, -15)
@@ -511,7 +511,7 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
                 emit(
                     "FAIL",
                     "peer-overlap",
-                    f"peer nodes '{vertex_label(first)}' and '{vertex_label(second)}' overlap",
+                    f"равноправные узлы '{vertex_label(first)}' и '{vertex_label(second)}' пересекаются",
                 )
                 continue
             gap = first.bbox.gap_to(second.bbox)
@@ -520,8 +520,8 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
                     "WARN",
                     "peer-gap",
                     (
-                        f"peer nodes '{vertex_label(first)}' and '{vertex_label(second)}' "
-                        f"are only {gap:.1f}px apart"
+                        f"равноправные узлы '{vertex_label(first)}' и '{vertex_label(second)}' "
+                        f"стоят друг от друга всего в {gap:.1f}px"
                     ),
                 )
 
@@ -536,7 +536,7 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
             emit(
                 "WARN",
                 "page-edge-gap",
-                f"node '{vertex_label(vertex)}' is only {margin:.1f}px from the page edge",
+                f"узел '{vertex_label(vertex)}' находится всего в {margin:.1f}px от края страницы",
             )
         for ancestor_id in climb_parents(vertex.cell_id, cells):
             swimlane = swimlanes.get(ancestor_id)
@@ -553,7 +553,7 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
                     "WARN",
                     "swimlane-gap",
                     (
-                        f"node '{vertex_label(vertex)}' is only {border_gap:.1f}px from "
+                        f"узел '{vertex_label(vertex)}' находится всего в {border_gap:.1f}px от "
                         f"swimlane '{vertex_label(swimlane)}'"
                     ),
                 )
@@ -568,7 +568,7 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
             emit(
                 "WARN",
                 "edge-skip",
-                f"edge '{edge_label(edge)}' is missing source or target; run structural validation first",
+                f"у связи '{edge_label(edge)}' отсутствует source или target; сначала запусти структурную проверку",
             )
             continue
         if not edge.waypoints and not is_trivial_adjacent_edge(edge, vertices):
@@ -576,8 +576,8 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
                 "WARN",
                 "missing-waypoints",
                 (
-                    f"edge '{edge_label(edge)}' has no explicit waypoints even though "
-                    "the route is non-trivial"
+                    f"у связи '{edge_label(edge)}' нет явных промежуточных точек, хотя "
+                    "маршрут нетривиален"
                 ),
             )
         polyline = build_polyline(edge, vertices)
@@ -585,7 +585,7 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
             emit(
                 "WARN",
                 "edge-skip",
-                f"edge '{edge_label(edge)}' could not be analyzed because source or target geometry is missing",
+                f"связь '{edge_label(edge)}' не удалось проанализировать, потому что отсутствует геометрия source или target",
             )
             continue
         if is_long_return_loop(edge, vertices, direction, core_box):
@@ -599,8 +599,8 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
                         "FAIL",
                         "waypoint-inside-node",
                         (
-                            f"edge '{edge_label(edge)}' has waypoint ({waypoint.x:.1f}, {waypoint.y:.1f}) "
-                            f"inside node '{vertex_label(vertex)}'"
+                            f"у связи '{edge_label(edge)}' промежуточная точка ({waypoint.x:.1f}, {waypoint.y:.1f}) "
+                            f"находится внутри узла '{vertex_label(vertex)}'"
                         ),
                     )
         for start, end in zip(polyline, polyline[1:]):
@@ -613,7 +613,7 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
                         "FAIL",
                         "edge-through-node",
                         (
-                            f"edge '{edge_label(edge)}' crosses unrelated node "
+                            f"связь '{edge_label(edge)}' пересекает чужой узел "
                             f"'{vertex_label(vertex)}'"
                         ),
                     )
@@ -624,8 +624,8 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
                         "WARN",
                         "edge-clearance",
                         (
-                            f"edge '{edge_label(edge)}' comes within {clearance:.1f}px of "
-                            f"node '{vertex_label(vertex)}'"
+                            f"связь '{edge_label(edge)}' проходит в {clearance:.1f}px от "
+                            f"узла '{vertex_label(vertex)}'"
                         ),
                     )
 
@@ -641,8 +641,8 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
                     "WARN",
                     "edge-crossing",
                     (
-                        f"edges '{first.edge_id}' and '{second.edge_id}' cross in the core area "
-                        f"at ({intersection.x:.1f}, {intersection.y:.1f})"
+                        f"связи '{first.edge_id}' и '{second.edge_id}' пересекаются в основной области "
+                        f"в точке ({intersection.x:.1f}, {intersection.y:.1f})"
                     ),
                 )
 
@@ -671,21 +671,21 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
                     "WARN",
                     "corridor-stack",
                     (
-                        f"edges '{first.edge_id}' and '{second.edge_id}' share the same corridor "
-                        "without visible offset"
+                        f"связи '{first.edge_id}' и '{second.edge_id}' используют один коридор "
+                        "без видимого смещения"
                     ),
                 )
 
     if long_return_loops > 2 or crossings > 1:
         details: list[str] = []
         if long_return_loops > 2:
-            details.append(f"{long_return_loops} long return loops")
+            details.append(f"длинных возвратных петель: {long_return_loops}")
         if crossings > 1:
-            details.append(f"{crossings} core crossings")
+            details.append(f"центральных пересечений: {crossings}")
         emit(
             "WARN",
             "split-needed",
-            "page likely needs overview/detail split because it still has " + " and ".join(details),
+            "странице, вероятно, нужно разделение на обзор и детали, потому что остаются " + " и ".join(details),
         )
 
     return issues
@@ -695,10 +695,10 @@ def analyze_drawio(path: Path) -> list[Issue]:
     tree = ET.parse(path)
     root = tree.getroot()
     if root.tag != "mxfile":
-        raise ValueError("Root element must be <mxfile>.")
+        raise ValueError("Корневой элемент должен быть <mxfile>.")
     diagrams = root.findall("diagram")
     if not diagrams:
-        raise ValueError("File does not contain any <diagram> pages.")
+        raise ValueError("Файл не содержит страниц <diagram>.")
     issues: list[Issue] = []
     for diagram in diagrams:
         issues.extend(analyze_page(diagram))
@@ -706,8 +706,11 @@ def analyze_drawio(path: Path) -> list[Issue]:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("path", help="Path to the .drawio file.")
+    parser = argparse.ArgumentParser(description=__doc__, add_help=False)
+    parser._positionals.title = "позиционные аргументы"
+    parser._optionals.title = "необязательные аргументы"
+    parser.add_argument("-h", "--help", action="help", help="показать это сообщение и выйти")
+    parser.add_argument("path", help="Путь к .drawio файлу.")
     return parser.parse_args()
 
 

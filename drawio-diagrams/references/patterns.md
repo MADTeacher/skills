@@ -1,117 +1,137 @@
-# Draw.io Diagram Patterns
+# Паттерны диаграмм Draw.io
 
-## Table Of Contents
+## Содержание
 
-- Flowcharts
-- Architecture diagrams
-- Sequence-like interaction maps
-- State diagrams
-- Trees and mind maps
-- Org charts
-- Containers and nested diagrams
-- Edge routing
-- Route examples
-- Large diagrams
+- Блок-схемы
+- Архитектурные диаграммы
+- Карты взаимодействий в стиле диаграмм последовательности
+- Диаграммы состояний
+- Деревья и интеллект-карты
+- Оргструктуры
+- Контейнеры и вложенные диаграммы
+- Маршрутизация связей
+- Примеры маршрутов
+- Большие диаграммы
 
-## Flowcharts
+## Блок-схемы
 
-- Use a single dominant direction: top-to-bottom or left-to-right.
-- Reserve diamond nodes for true branch points only.
-- Put yes and no labels on outgoing edges, not inside the diamond.
-- Keep step boxes aligned to a coarse grid.
-- End each major branch with an explicit terminator or merge.
+- Используй одно главное направление: сверху вниз или слева направо.
+- Оставляй ромбы только для настоящих точек ветвления.
+- Ставь подписи «да» и «нет» на исходящие связи, а не внутрь ромба.
+- Выравнивай блоки шагов по крупной сетке.
+- Завершай каждую крупную ветку явным терминатором или слиянием.
 
-## Architecture Diagrams
+## Архитектурные диаграммы
 
-- Start with trust or ownership boundaries: client, edge, application, data, external systems.
-- Use containers or swimlanes for zones such as `Frontend`, `Backend`, `Data`, `Third-party`.
-- Place high-traffic request paths on the shortest visual route.
-- Use dashed edges for async signals, background jobs, and indirect dependencies.
-- Put protocols on edges when they add meaning: `HTTPS`, `gRPC`, `Kafka`, `S3 event`.
+- Начинай с границ доверия или владения: клиент, край, приложение, данные,
+  внешние системы.
+- Используй контейнеры или swimlane для зон вроде `Frontend`, `Backend`, `Data`,
+  `Third-party`.
+- Размещай самые частые пути запросов по кратчайшему визуальному маршруту.
+- Используй пунктирные связи для асинхронных сигналов, фоновых задач и
+  косвенных зависимостей.
+- Ставь протоколы на связях, когда они добавляют смысл: `HTTPS`, `gRPC`,
+  `Kafka`, `S3 event`.
 
-## Sequence-Like Interaction Maps
+## Карты взаимодействий в стиле диаграмм последовательности
 
-- Use vertical swimlanes or tall columns for participants.
-- Stack events vertically in time order.
-- Use thin, mostly horizontal connectors between participants.
-- Prefer numbered edge labels or concise action text such as `1. Submit order`.
-- Split very long timelines into phases or pages.
+- Используй вертикальные swimlane или высокие колонки для участников.
+- Располагай события по вертикали в порядке времени.
+- Используй тонкие, в основном горизонтальные коннекторы между участниками.
+- Предпочитай нумерованные подписи связей или короткий текст действия вроде
+  `1. Submit order`.
+- Разделяй очень длинные временные линии на фазы или страницы.
 
-## State Diagrams
+## Диаграммы состояний
 
-- Use a clear dominant flow, usually top-to-bottom.
-- Use rounded rectangles or process boxes for states and terminators for explicit start or finish points.
-- Put events or conditions on transitions rather than inside state boxes.
-- Show retry, wait, or failure loops explicitly so the control cycle is readable at a glance.
-- Keep transitions sparse; if every state links to every other state, split the diagram into phases or pages.
+- Используй понятный основной поток, обычно сверху вниз.
+- Используй скругленные прямоугольники или блоки процесса для состояний, а
+  терминаторы — для явных точек старта или завершения.
+- Ставь события или условия на переходы, а не внутрь блоков состояний.
+- Показывай повторы, ожидание и сбойные петли явно, чтобы цикл управления
+  читался сразу.
+- Держи переходы разреженными. Если каждое состояние связано с каждым другим,
+  раздели диаграмму на фазы или страницы.
 
-## Trees And Mind Maps
+## Деревья и интеллект-карты
 
-- Place the root centrally for mind maps or at the top for hierarchical trees.
-- Keep sibling spacing consistent.
-- Limit text length per node so the branching structure stays legible.
-- Use color sparingly to distinguish depth-one branches or categories.
+- Размещай корень в центре для интеллект-карт или сверху для иерархических
+  деревьев.
+- Держи расстояния между соседними ветками едиными.
+- Ограничивай длину текста в узле, чтобы структура ветвления оставалась
+  читаемой.
+- Используй цвет сдержанно: для веток первого уровня или категорий.
 
-## Org Charts
+## Оргструктуры
 
-- Keep one box size per rank whenever possible.
-- Use vertical connectors for reporting lines.
-- Put functional notes in smaller secondary boxes or as short subtitles.
-- Avoid crossing lines; widen the chart instead.
+- По возможности держи один размер блока для одного ранга.
+- Используй вертикальные коннекторы для линий подчинения.
+- Функциональные заметки помещай в небольшие вторичные блоки или короткие
+  подзаголовки.
+- Избегай пересечений линий. Лучше расширить схему.
 
-## Containers And Nested Diagrams
+## Контейнеры и вложенные диаграммы
 
-- Use true containment when a visual boundary owns children. Put child cells under the container with `parent="containerId"` and relative coordinates.
-- Use `swimlane` when the container needs a visible title bar or when the container itself participates in connections.
-- Use a lightweight container or `group;pointerEvents=0;` when you only need grouping and do not want the parent to capture rewired connections.
-- Do not add complicated detours just to avoid crossing a parent container when an edge targets a child inside it. Crossing the boundary is expected.
+- Используй настоящее вложение, когда визуальная граница владеет дочерними
+  элементами. Помещай дочерние ячейки под контейнер через
+  `parent="containerId"` и относительные координаты.
+- Используй `swimlane`, когда контейнеру нужна видимая строка заголовка или сам
+  контейнер участвует в связях.
+- Используй легкий контейнер или `group;pointerEvents=0;`, когда нужна только
+  группировка и родитель не должен перехватывать переназначенные связи.
+- Не добавляй сложные обходы только ради того, чтобы не пересечь родительский
+  контейнер, если связь идет к дочернему элементу внутри него. Пересечение
+  границы тут ожидаемо.
 
-## Edge Routing
+## Маршрутизация связей
 
-- Use one primary edge style within a diagram.
-- Prefer elbow edges for simple 0-1 bend routes.
-- Prefer orthogonal edges when a route needs 2+ bends around obstacles.
-- Avoid edge segments that cut through unrelated nodes.
-- Treat edge-vertex crossings as defects. When conflicts are unavoidable, prefer
-  edge-edge crossings over edge-vertex crossings.
-- Use labels on edges only when they add meaning such as protocol, decision branch, or event name.
-- Adjust node layout and spacing first, then encode the accepted route with
-  explicit edge geometry.
-- Do not leave the final connector path to draw.io auto-routing or post-open
-  handle behavior.
-- `edges[].points` are mandatory when a route changes axis, bypasses an
-  obstacle, crosses lane or zone space, links non-adjacent nodes, or carries a
-  return loop around the perimeter.
-- Use `entryX`, `entryY`, `exitX`, and `exitY` when the side of attachment
-  affects readability.
-- Keep at least `24 px` between peer non-container nodes, `24 px` between nodes
-  and page edges, `32 px` between nodes and swimlane borders, and `12 px`
-  between an edge and an unrelated node whenever possible.
-- Route long back-edges around the outside of the page rather than through the
-  center of the main reading path.
-- If the first routing pass still leaves more than one core crossing or more
-  than two long back-edges through the middle, split the material across pages.
+- Используй один основной стиль связей внутри диаграммы.
+- Предпочитай ломаные связи для простых маршрутов с 0-1 изгибом.
+- Предпочитай ортогональные связи, когда маршруту нужно 2+ изгиба вокруг
+  препятствий.
+- Избегай сегментов связей, которые режут чужие узлы.
+- Считай пересечения связь-вершина дефектом. Когда конфликтов не избежать,
+  лучше пересечение связь-связь, чем связь-вершина.
+- Используй подписи на связях только когда они добавляют смысл: протокол, ветка
+  решения или имя события.
+- Сначала меняй компоновку узлов и интервалы, потом кодируй принятый маршрут
+  явной геометрией связи.
+- Не оставляй финальный путь коннектора на авторазводку draw.io или поведение
+  ручек после открытия файла.
+- `edges[].points` обязательны, когда маршрут меняет ось, обходит препятствие,
+  пересекает пространство дорожки или зоны, связывает несоседние узлы либо
+  ведет возвратную петлю по периметру.
+- Используй `entryX`, `entryY`, `exitX` и `exitY`, когда сторона крепления
+  влияет на читаемость.
+- По возможности держи минимум `24 px` между равноправными узлами вне
+  контейнеров, `24 px` между узлами и краями страницы, `32 px` между узлами и
+  границами swimlane, `12 px` между связью и чужим узлом.
+- Веди длинные обратные связи вокруг внешнего края страницы, а не через центр
+  основного пути чтения.
+- Если первый проход маршрутизации все еще оставляет больше одного основного
+  пересечения или больше двух длинных обратных связей через центр, раздели
+  материал по страницам.
 
-## Route Examples
+## Примеры маршрутов
 
-Bad route:
+Плохой маршрут:
 
-- A return edge leaves the right side of a downstream node, cuts back through
-  the middle of the page, and passes over a note or intermediate system.
-- Two parallel arrows sit on the same centerline with no offset, so the viewer
-  cannot tell which arrow belongs to which source.
-- The edge has no explicit waypoints even though it changes axis and crosses a
-  lane boundary.
+- Возвратная связь выходит из правой стороны нижнего узла, режет середину
+  страницы и проходит поверх заметки или промежуточной системы.
+- Две параллельные стрелки лежат на одной оси без смещения, поэтому зритель не
+  понимает, какая стрелка к какому источнику относится.
+- У связи нет явных промежуточных точек, хотя она меняет ось и пересекает
+  границу дорожки.
 
-Good route:
+Хороший маршрут:
 
-- The primary path stays on the shortest visual route through the center.
-- The return loop exits from the outer side of the source, travels along a
-  perimeter corridor, and re-enters the target from a clearly different side.
-- The route uses explicit waypoints plus side anchoring so reopening the file
-  does not reroute it through the diagram body.
+- Основной путь идет по кратчайшему визуальному маршруту через центр.
+- Возвратная петля выходит с внешней стороны источника, идет по коридору
+  периметра и входит в цель с явно другой стороны.
+- Маршрут использует явные промежуточные точки и привязку к сторонам, поэтому
+  повторное открытие файла не уводит его через тело диаграммы.
 
-Good XML example:
+Хороший пример XML:
 
 ```xml
 <mxCell id="edge-review-loop" value="revise" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0.5;entryY=0;endArrow=block;" edge="1" parent="1" source="verify" target="plan">
@@ -126,10 +146,12 @@ Good XML example:
 </mxCell>
 ```
 
-## Large Diagrams
+## Большие диаграммы
 
-- Produce an overview page first.
-- Break detail into separate pages by subsystem, phase, or persona.
-- Add a small legend page when colors, line styles, or icons carry meaning.
-- Prefer duplication across pages over extreme connector density.
-- Keep each page readable at normal zoom instead of relying on endless canvas size.
+- Сначала создай обзорную страницу.
+- Разбей детали на отдельные страницы по подсистемам, фазам или персонам.
+- Добавь небольшую страницу легенды, когда цвета, стили линий или иконки несут
+  смысл.
+- Предпочитай повторение между страницами чрезмерной плотности коннекторов.
+- Держи каждую страницу читаемой при обычном масштабе, а не рассчитывай на
+  бесконечный размер полотна.

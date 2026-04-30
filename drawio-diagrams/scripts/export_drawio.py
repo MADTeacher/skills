@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export draw.io diagrams via the draw.io desktop CLI."""
+"""Экспортирует диаграммы draw.io через настольный CLI draw.io."""
 
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ def locate_drawio() -> tuple[str, str]:
         if candidate and Path(candidate).exists():
             return candidate, source
 
-    raise FileNotFoundError("Unable to locate the draw.io desktop CLI.")
+    raise FileNotFoundError("Не удалось найти настольный CLI draw.io.")
 
 
 def resolve_command_path(command: str) -> Path:
@@ -146,25 +146,28 @@ def build_output_path(source: Path, export_format: str, output: str | None) -> P
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("source", help="Path to the source .drawio file.")
-    parser.add_argument("--format", required=True, choices=["png", "svg", "pdf", "jpg"], help="Export format.")
-    parser.add_argument("--output", help="Path to the exported artifact.")
-    parser.add_argument("--page-index", type=int, help="1-based page index to export.")
-    parser.add_argument("--all-pages", action="store_true", help="Export all pages, mainly useful for PDF.")
-    parser.add_argument("--border", type=int, default=10, help="Border size in pixels.")
-    parser.add_argument("--scale", type=float, help="Scale factor passed to draw.io.")
-    parser.add_argument("--transparent", action="store_true", help="Transparent background for PNG exports.")
-    parser.add_argument("--postprocess", action="store_true", help="Attempt optional @drawio/postprocess before export.")
-    parser.add_argument("--open", action="store_true", help="Open the exported file after creation if possible.")
+    parser = argparse.ArgumentParser(description=__doc__, add_help=False)
+    parser._positionals.title = "позиционные аргументы"
+    parser._optionals.title = "необязательные аргументы"
+    parser.add_argument("-h", "--help", action="help", help="показать это сообщение и выйти")
+    parser.add_argument("source", help="Путь к исходному .drawio файлу.")
+    parser.add_argument("--format", required=True, choices=["png", "svg", "pdf", "jpg"], help="Формат экспорта.")
+    parser.add_argument("--output", help="Путь к экспортированному артефакту.")
+    parser.add_argument("--page-index", type=int, help="Индекс страницы для экспорта, начиная с 1.")
+    parser.add_argument("--all-pages", action="store_true", help="Экспортировать все страницы, в основном полезно для PDF.")
+    parser.add_argument("--border", type=int, default=10, help="Размер рамки в пикселях.")
+    parser.add_argument("--scale", type=float, help="Коэффициент масштаба, передаваемый draw.io.")
+    parser.add_argument("--transparent", action="store_true", help="Прозрачный фон для экспорта PNG.")
+    parser.add_argument("--postprocess", action="store_true", help="Попробовать необязательный @drawio/postprocess перед экспортом.")
+    parser.add_argument("--open", action="store_true", help="Открыть экспортированный файл после создания, если возможно.")
     parser.add_argument(
         "--allow-desktop-export",
         "--allow-unstable-macos-export",
         dest="allow_desktop_export",
         action="store_true",
         help=(
-            "Allow launching the desktop draw.io app from automation even though "
-            "desktop builds can crash, hang, require a display, or trigger OS dialogs."
+            "Разрешить запуск настольного приложения draw.io из автоматизации, хотя "
+            "настольные сборки могут падать, зависать, требовать дисплей или вызывать системные диалоги."
         ),
     )
     return parser.parse_args()
@@ -174,7 +177,7 @@ def main() -> int:
     args = parse_args()
     source = Path(args.source).expanduser().resolve()
     if not source.exists():
-        print(f"Source file does not exist: {source}", file=sys.stderr)
+        print(f"Исходный файл не существует: {source}", file=sys.stderr)
         return 2
 
     output = build_output_path(source, args.format, args.output).expanduser().resolve()
@@ -196,15 +199,15 @@ def main() -> int:
     )
     if should_block_desktop_export(drawio_cmd, drawio_source, allow_desktop_export):
         print(
-            "Blocked draw.io desktop export in safety mode: the desktop app can crash, hang, "
-            "require a GUI session, or trigger OS dialogs when launched from automation. "
-            "If you have a safer wrapper or renderer, point DRAWIO_CMD to that wrapper "
-            "instead of the official desktop binary. "
-            "If you explicitly want the desktop-app risk, rerun with "
-            "--allow-desktop-export or set "
+            "Настольный экспорт draw.io заблокирован в безопасном режиме: настольное приложение может падать, зависать, "
+            "требовать GUI-сеанс или вызывать системные диалоги при запуске из автоматизации. "
+            "Если есть более безопасная обертка или рендерер, укажи DRAWIO_CMD на нее "
+            "вместо официального настольного бинарного файла. "
+            "Если явно нужен риск настольного приложения, повтори запуск с "
+            "--allow-desktop-export или задай "
             f"{ALLOW_DESKTOP_EXPORT_ENV}=1. "
-            "On this macOS host, the observed failure mode is the "
-            '“Application unexpectedly quit” dialog.',
+            "На этом хосте macOS наблюдавшийся сбой — диалог "
+            '“Application unexpectedly quit”.',
             file=sys.stderr,
         )
         return 4
@@ -227,7 +230,7 @@ def main() -> int:
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as exc:
-        print(f"draw.io export failed with exit code {exc.returncode}", file=sys.stderr)
+        print(f"Экспорт draw.io завершился с кодом {exc.returncode}", file=sys.stderr)
         return exc.returncode or 1
 
     print(output)

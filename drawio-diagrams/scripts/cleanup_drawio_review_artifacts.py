@@ -40,9 +40,13 @@ def cleanup(drawio_path: Path) -> list[str]:
         f'{stem}*.review.jpg',
         f'{stem}*.review.jpeg',
         f'{stem}*.review.png',
+        f'{stem}*.review.svg',
+        f'{stem}*.review.pdf',
         f'{stem}*.tmp.jpg',
         f'{stem}*.tmp.jpeg',
         f'{stem}*.tmp.png',
+        f'{stem}*.tmp.svg',
+        f'{stem}*.tmp.pdf',
     ]
 
     seen: set[Path] = set()
@@ -70,19 +74,30 @@ def prepare(drawio_path: Path) -> dict[str, str | list[str]]:
         'drawio': str(drawio_path),
         'review_dir': str(tmp_dir),
         'png_pattern': str(tmp_dir / f'{stem}-page{{page}}.png'),
+        'svg_pattern': str(tmp_dir / f'{stem}-page{{page}}.svg'),
         'jpg_pattern': str(tmp_dir / f'{stem}-page{{page}}.jpg'),
+        'pdf_pattern': str(tmp_dir / f'{stem}.pdf'),
         'removed': removed,
     }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description='Prepare and clean temporary draw.io review artifacts.')
-    subparsers = parser.add_subparsers(dest='command', required=True)
+    parser = argparse.ArgumentParser(description='Готовит и очищает временные артефакты ревью draw.io.', add_help=False)
+    parser._positionals.title = 'позиционные аргументы'
+    parser._optionals.title = 'необязательные аргументы'
+    parser.add_argument('-h', '--help', action='help', help='показать это сообщение и выйти')
+    subparsers = parser.add_subparsers(dest='command', required=True, title='команды')
 
-    prepare_parser = subparsers.add_parser('prepare', help='Clean stale artifacts and create a fresh temp review directory.')
+    prepare_parser = subparsers.add_parser('prepare', help='Очистить старые артефакты и создать свежую временную папку ревью.', add_help=False)
+    prepare_parser._positionals.title = 'позиционные аргументы'
+    prepare_parser._optionals.title = 'необязательные аргументы'
+    prepare_parser.add_argument('-h', '--help', action='help', help='показать это сообщение и выйти')
     prepare_parser.add_argument('drawio', type=Path)
 
-    cleanup_parser = subparsers.add_parser('cleanup', help='Remove temp review artifacts for a .drawio file.')
+    cleanup_parser = subparsers.add_parser('cleanup', help='Удалить временные артефакты ревью для .drawio файла.', add_help=False)
+    cleanup_parser._positionals.title = 'позиционные аргументы'
+    cleanup_parser._optionals.title = 'необязательные аргументы'
+    cleanup_parser.add_argument('-h', '--help', action='help', help='показать это сообщение и выйти')
     cleanup_parser.add_argument('drawio', type=Path)
 
     args = parser.parse_args()
