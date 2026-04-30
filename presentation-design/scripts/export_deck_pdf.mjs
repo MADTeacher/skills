@@ -18,12 +18,12 @@
  *   npm install playwright pdf-lib
  *
  * Слайды сортируются по имени файла (01-xxx.html → 02-xxx.html → ...)
+ * Перед экспортом требуется asset-manifest.json в рабочей директории презентации.
  */
 
-import { chromium } from 'playwright';
-import { PDFDocument } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
+import { checkAssetGate } from './asset_gate_check.mjs';
 
 function parseArgs() {
   const args = { width: 1920, height: 1080 };
@@ -46,6 +46,14 @@ async function main() {
   const slidesDir = path.resolve(slides);
   const outFile = path.resolve(out);
 
+  const assetGate = await checkAssetGate({ slides, mode: 'preexport' });
+  for (const warning of assetGate.warnings) console.error(`Предупреждение asset gate: ${warning}`);
+  if (assetGate.errors.length) {
+    console.error(`Asset gate failed: ${assetGate.manifestPath}`);
+    assetGate.errors.forEach(error => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
   const files = (await fs.readdir(slidesDir))
     .filter(f => f.endsWith('.html'))
     .sort();
@@ -55,6 +63,8 @@ async function main() {
   }
   console.log(`Найдено слайдов: ${files.length} в ${slidesDir}`);
 
+  const { chromium } = await import('playwright');
+  const { PDFDocument } = await import('pdf-lib');
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width, height } });
 

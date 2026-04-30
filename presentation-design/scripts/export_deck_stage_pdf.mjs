@@ -26,11 +26,12 @@
  *   - Текст остается векторным (можно копировать и искать)
  *   - Визуальная точность 1:1
  *   - Шрифты должны загружаться Chromium (локальные шрифты или Google Fonts)
+ * Перед экспортом требуется asset-manifest.json в рабочей директории презентации.
  */
 
-import { chromium } from 'playwright';
 import fs from 'fs/promises';
 import path from 'path';
+import { checkAssetGate } from './asset_gate_check.mjs';
 
 function parseArgs() {
   const args = { width: 1920, height: 1080 };
@@ -53,6 +54,14 @@ async function main() {
   const htmlAbs = path.resolve(html);
   const outFile = path.resolve(out);
 
+  const assetGate = await checkAssetGate({ mode: 'preexport' });
+  for (const warning of assetGate.warnings) console.error(`Предупреждение asset gate: ${warning}`);
+  if (assetGate.errors.length) {
+    console.error(`Asset gate failed: ${assetGate.manifestPath}`);
+    assetGate.errors.forEach(error => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
   await fs.access(htmlAbs).catch(() => {
     console.error(`HTML-файл не найден: ${htmlAbs}`);
     process.exit(1);
@@ -60,6 +69,7 @@ async function main() {
 
   console.log(`Рендерим ${path.basename(htmlAbs)} → ${path.basename(outFile)}`);
 
+  const { chromium } = await import('playwright');
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width, height } });
   const page = await ctx.newPage();

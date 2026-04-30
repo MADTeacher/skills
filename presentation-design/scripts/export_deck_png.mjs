@@ -6,12 +6,13 @@
  *   node export_deck_png.mjs --slides <dir> --out <dir> [--width 1920] [--height 1080] [--scale 2]
  *
  * Слайды сортируются по имени файла.
+ * Перед экспортом требуется asset-manifest.json в рабочей директории презентации.
  * Зависимость: npm install playwright
  */
 
-import { chromium } from 'playwright';
 import fs from 'fs/promises';
 import path from 'path';
+import { checkAssetGate } from './asset_gate_check.mjs';
 
 function parseArgs() {
   const args = { width: 1920, height: 1080, scale: 2 };
@@ -35,6 +36,14 @@ async function main() {
   const slidesDir = path.resolve(slides);
   const outDir = path.resolve(out);
 
+  const assetGate = await checkAssetGate({ slides, mode: 'preexport' });
+  for (const warning of assetGate.warnings) console.error(`Предупреждение asset gate: ${warning}`);
+  if (assetGate.errors.length) {
+    console.error(`Asset gate failed: ${assetGate.manifestPath}`);
+    assetGate.errors.forEach(error => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
   const files = (await fs.readdir(slidesDir))
     .filter(f => f.endsWith('.html'))
     .sort();
@@ -45,6 +54,7 @@ async function main() {
 
   await fs.mkdir(outDir, { recursive: true });
 
+  const { chromium } = await import('playwright');
   const browser = await chromium.launch();
   const ctx = await browser.newContext({
     viewport: { width, height },

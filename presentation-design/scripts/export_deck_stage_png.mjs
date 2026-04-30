@@ -10,12 +10,13 @@
  *   - `export_deck_png.mjs` здесь не подходит, потому что он рассчитан на папку HTML-слайдов
  *
  * Зависимость: npm install playwright
+ * Перед экспортом требуется asset-manifest.json в рабочей директории презентации.
  */
 
-import { chromium } from 'playwright';
 import fs from 'fs/promises';
 import path from 'path';
 import { pathToFileURL } from 'url';
+import { checkAssetGate } from './asset_gate_check.mjs';
 
 function parseArgs() {
   const args = { width: 1920, height: 1080, scale: 2, wait: 300 };
@@ -45,12 +46,21 @@ async function main() {
   const htmlAbs = path.resolve(html);
   const outDir = path.resolve(out);
 
+  const assetGate = await checkAssetGate({ mode: 'preexport' });
+  for (const warning of assetGate.warnings) console.error(`Предупреждение asset gate: ${warning}`);
+  if (assetGate.errors.length) {
+    console.error(`Asset gate failed: ${assetGate.manifestPath}`);
+    assetGate.errors.forEach(error => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
   await fs.access(htmlAbs).catch(() => {
     console.error(`HTML-файл не найден: ${htmlAbs}`);
     process.exit(1);
   });
   await fs.mkdir(outDir, { recursive: true });
 
+  const { chromium } = await import('playwright');
   const browser = await chromium.launch();
   const ctx = await browser.newContext({
     viewport: { width, height },

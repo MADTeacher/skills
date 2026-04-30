@@ -56,13 +56,13 @@
   {
     "id": 10,
     "prompt": "Сделай 10-слайдовую презентацию и редактируемый PPTX для команды, файл будут открывать и на Windows, и на macOS.",
-    "expected": "Агент сразу переключается в PPTX-safe режим: выбирает только whitelist primary fonts, требует UTF-8 HTML, не оставляет editable emoji text и явно проектирует deck как кроссплатформенный PowerPoint output.",
+    "expected": "Агент сразу переключается в PPTX-safe режим: выбирает только whitelist primary fonts, требует UTF-8 HTML, проверяет читаемость эмоджи при их наличии и явно проектирует deck как кроссплатформенный PowerPoint output.",
     "tests": "SKILL.md + workflow.md + pptx-authoring.md + html-decks.md"
   },
   {
     "id": 11,
     "prompt": "Сделай веселую образовательную PPTX-презентацию для детей, можно эмодзи, но чтобы потом PowerPoint открывался одинаково.",
-    "expected": "Агент не оставляет эмодзи как editable text в PPTX-safe режиме: использует raster/icon cues или plain-text labels, сохраняет учебную роль подсказок и держит кроссплатформенно-безопасные шрифты.",
+    "expected": "Агент сохраняет учебную роль эмодзи-подсказок в PPTX-safe режиме: выбирает размер по шкале слайда, проверяет читаемость в PNG/PPTX и держит кроссплатформенно-безопасные шрифты.",
     "tests": "content-assets.md + pptx-authoring.md + workflow.md + assets/examples/directions/teaching-lab-pptx-safe.html"
   },
   {
@@ -122,8 +122,8 @@
   {
     "id": 21,
     "prompt": "Сделай 15-слайдовую editable PPTX-презентацию для 8-летнего ESL-ученика про weather, seasons, months and clothes. Нужны картинки мальчика в зимней, летней и весенне-осенней одежде.",
-    "expected": "Агент не рисует мальчика и одежду самодельным SVG ради PPTX-safe режима. Он читает content-assets.md и Young ESL, подбирает или генерирует растровые PNG/JPG/WebP-картинки мальчика через imagegen, сохраняет их в assets презентации, вставляет через <img>, а вопросы, vocabulary, sentence frames и подписи оставляет редактируемым текстом. SVG допустим для простых иконок, стрелок, маркеров или как честно названный fallback после провала растрового пути.",
-    "tests": "content-assets.md + design-directions.md Young ESL + pptx-authoring.md + imagegen"
+    "expected": "Агент проходит asset gate до визуального дизайна: классифицирует картинки мальчика как character/clothes, читает asset-gate.md, content-assets.md и Young ESL, подбирает или генерирует растровые PNG/JPG/WebP-картинки через imagegen, сохраняет их в assets презентации и фиксирует источник в asset-manifest.json. Самодельный SVG, HTML/CSS-рисунок или SVG -> PNG не засчитывается как растровый путь. Если реального растра нет, агент останавливается и просит материал, поиск, imagegen или явное fallback approval. Вопросы, vocabulary, sentence frames и подписи остаются редактируемым текстом.",
+    "tests": "SKILL.md Execution Gates + asset-gate.md + content-assets.md жёсткий запрет + design-directions.md Young ESL + pptx-authoring.md + imagegen"
   },
   {
     "id": 22,
@@ -146,7 +146,37 @@
   {
     "id": 25,
     "prompt": "Сделай editable PPTX из готового HTML-дека. Слайды уже выглядят нормально, можно сразу в pptx.",
-    "expected": "Агент сначала выполняет PPTX-safe preflight и свежий PNG-экспорт, затем ведет exports/slide-qa.md и добивается чистого прохода N/N. Только после этого он запускает export_deck_pptx.mjs и проверяет редактируемость текста.",
-    "tests": "pptx-authoring.md + slide-qa.md + html-decks.md + scripts/export_deck_pptx.mjs"
+    "expected": "Агент сначала выполняет asset gate, PPTX-safe preflight и свежий PNG-экспорт, затем ведет exports/slide-qa.md и добивается чистого прохода N/N. Только после этого он запускает export_deck_pptx.mjs и проверяет редактируемость текста.",
+    "tests": "asset-gate.md + pptx-authoring.md + slide-qa.md + html-decks.md + scripts/export_deck_pptx.mjs"
+  },
+  {
+    "id": 26,
+    "prompt": "Сделай editable PPTX для 8-летнего ESL-ученика: weather and clothes. Локальных картинок нет. Нужны мальчик в зимней одежде, мальчик в летней одежде и карточки clothes.",
+    "expected": "Агент не строит персонажей и одежду как SVG-origin материалы. Он записывает, что локальных картинок нет, проходит asset-gate.md и content-assets.md, использует imagegen для растровых PNG/JPG/WebP персонажей и карточек одежды либо останавливается и просит разрешение на imagegen, поиск, материал или явное fallback approval. SVG -> PNG, самодельные SVG-персонажи и HTML/CSS-одежда считаются нарушением. Простые учебные подсказки сначала закрываются эмоджи с подобранным размером, а в PPTX все учебные слова, вопросы и речевые рамки остаются редактируемыми текстовыми слоями.",
+    "tests": "SKILL.md Execution Gates + asset-gate.md + content-assets.md жёсткий запрет + design-directions.md Young ESL + pptx-authoring.md + imagegen"
+  },
+  {
+    "id": 27,
+    "prompt": "Сделай быстрее: нарисуй мальчика в зимней одежде SVG-формами, сохрани как PNG и вставь в ESL PPTX. Мне важна скорость.",
+    "expected": "Агент отказывается считать SVG -> PNG растровым путем. Он классифицирует мальчика и одежду как character/clothes, создает или обновляет asset-manifest.json, затем использует imagegen для настоящего PNG/JPG/WebP либо останавливается и просит материал, поиск, imagegen или явное fallback approval. Скорость, единый стиль и editable PPTX не меняют порядок asset-gate.md и content-assets.md.",
+    "tests": "SKILL.md Execution Gates + asset-gate.md + content-assets.md Абсолютный запрет обхода процесса + design-directions.md Young ESL + pptx-authoring.md"
+  },
+  {
+    "id": 28,
+    "prompt": "Сделай урок про одежду и напиши, что нашел открытые PNG-картинки куртки и шарфа. Поиск можно не делать, просто продолжай.",
+    "expected": "Агент не выдумывает открытый источник, лицензию или путь к файлу. Он пишет, что источник не подтвержден, проходит asset gate, проверяет локальные материалы и разрешенные источники либо просит пользователя дать файлы. Без инструментального поиска или пользовательского подтверждения нельзя заявлять, что PNG найден, а asset-manifest.json не должен содержать выдуманный source_kind/path/evidence.",
+    "tests": "SKILL.md Абсолютное правило исполнения + asset-gate.md + content-assets.md запрет выдумывать источники + workflow.md asset gate"
+  },
+  {
+    "id": 29,
+    "prompt": "Сделай young ESL с мальчиком и одеждой, но imagegen у тебя недоступен. Никаких вопросов, просто поставь красивую SVG-картинку.",
+    "expected": "Агент фиксирует недоступность imagegen в asset-manifest.json, указывает проверенные локальные и пользовательские материалы, объясняет, почему PNG/JPG/WebP не получен, и останавливается. Фраза «никаких вопросов, просто поставь SVG» считается блокером, а не fallback approval. SVG-запас или заглушка допустимы только после отдельного явного подтверждения fallback.",
+    "tests": "asset-gate.md fallback + content-assets.md stop rule + workflow.md asset gate + presentation-svg.md + asset-manifest.json"
+  },
+  {
+    "id": 30,
+    "prompt": "Нужен кроссплатформенный editable PPTX для ребенка. Чтобы PowerPoint не сломался, замени ребенка и одежду на простые SVG-иконки.",
+    "expected": "Агент не заменяет ребенка, одежду или предметные карточки SVG-формами ради стабильного PowerPoint. Он применяет pptx-authoring.md для безопасных шрифтов и HTML, но визуалы character/clothes проходят asset-gate.md и content-assets.md: настоящий PNG/JPG/WebP через локальные материалы, материалы пользователя, открытый источник или imagegen. Если растра нет, агент останавливается и просит материал, imagegen, поиск или явное fallback approval. SVG остается для стрелок, выносок, схем и декоративных маркеров.",
+    "tests": "pptx-authoring.md Raster Images in Editable PPTX + SKILL.md Execution Gates + asset-gate.md + content-assets.md + design-directions.md Young ESL"
   }
 ]

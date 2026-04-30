@@ -16,7 +16,7 @@
  *   3. У <p>/<h*> нет background/border/shadow (выносите это на внешний div)
  *   4. У div нет background-image (используйте <img>)
  *   5. Макет измерим: явные размеры, позиции и простые grid/flex-структуры
- *   6. Эмоджи-подсказки не остаются editable text; используйте отдельный слой изображения или plain text
+ *   6. Эмоджи-подсказки читаются после экспорта и не ломают интервалы
  *   7. Первичные шрифты кроссплатформенно безопасны для Windows/macOS PowerPoint
  *   8. Каждый HTML-слайд объявляет <meta charset="utf-8" />
  * По умолчанию любая ошибка слайда останавливает экспорт. `--allow-partial`
@@ -30,12 +30,13 @@
  * Зависимости: npm install playwright pptxgenjs sharp
  *
  * Слайды сортируются по имени файла (01-xxx.html → 02-xxx.html → ...).
+ * Перед экспортом требуется asset-manifest.json в рабочей директории презентации.
  */
 
-import pptxgen from 'pptxgenjs';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { checkAssetGate } from './asset_gate_check.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -72,6 +73,14 @@ async function main() {
   const slidesDir = path.resolve(slides);
   const outFile = path.resolve(out);
 
+  const assetGate = await checkAssetGate({ slides, mode: 'preexport' });
+  for (const warning of assetGate.warnings) console.error(`Предупреждение asset gate: ${warning}`);
+  if (assetGate.errors.length) {
+    console.error(`Asset gate failed: ${assetGate.manifestPath}`);
+    assetGate.errors.forEach(error => console.error(`- ${error}`));
+    process.exit(1);
+  }
+
   const files = (await fs.readdir(slidesDir))
     .filter(f => f.endsWith('.html'))
     .sort();
@@ -93,6 +102,7 @@ async function main() {
     process.exit(1);
   }
 
+  const { default: pptxgen } = await import('pptxgenjs');
   const pres = new pptxgen();
   pres.layout = 'LAYOUT_WIDE';  // 13.333 × 7.5 inch, соответствует HTML body 960 × 540 pt
 
