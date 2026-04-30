@@ -9,8 +9,7 @@ description: >-
   description, layered validation, instruction coherence, проверку повторов и
   конфликтов между SKILL.md, references, scripts и agent metadata, workflow
   bypass audit, sequence hardening, обход обязательных шагов, validation
-  bypass, или
-  превратить отчет/инструкцию/шаблон в переиспользуемый агентский навык.
+  bypass, или превратить отчет/инструкцию/шаблон в переиспользуемый агентский навык.
 ---
 
 # Advanced Skill Builder
