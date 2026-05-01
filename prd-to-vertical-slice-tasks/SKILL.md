@@ -1,6 +1,10 @@
 ---
 name: prd-to-vertical-slice-tasks
 description: Разбить план, спецификацию или PRD на независимые задачи для реализации с помощью вертикальных срезов. Использовать, когда пользователь хочет превратить план, PRD, описание функции или техническую спецификацию в набор исполнимых задач.
+metadata:
+  author: Stanislav [MADTeacher] Chernyshev
+  url: https://github.com/MADTeacher
+  version: "1.0"
 ---
 
 # Задачи из спецификации

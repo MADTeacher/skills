@@ -7,6 +7,10 @@ description: >-
   when the user asks to design a screen, flow, deck, visual direction, multiple
   options, extract a design system or component set, or review work for
   accessibility, hierarchy, interaction states, and generic AI aesthetics.
+metadata:
+  author: Stanislav [MADTeacher] Chernyshev
+  url: https://github.com/MADTeacher
+  version: "1.0"
 ---
 
 # Design Studio

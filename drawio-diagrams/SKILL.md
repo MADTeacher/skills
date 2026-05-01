@@ -15,6 +15,10 @@ description: >-
   в PNG, SVG, JPG или PDF для книги, документа, презентации или другой передачи
   человеку, с финальными экспортами рядом с `.drawio` и прямым просмотром
   изображения моделью.
+metadata:
+  author: Stanislav [MADTeacher] Chernyshev
+  url: https://github.com/MADTeacher
+  version: "1.0"
 ---
 
 # Диаграммы Drawio

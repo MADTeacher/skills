@@ -10,6 +10,10 @@ description: >-
   конфликтов между SKILL.md, references, scripts и agent metadata, workflow
   bypass audit, sequence hardening, обход обязательных шагов, validation
   bypass, или превратить отчет/инструкцию/шаблон в переиспользуемый агентский навык.
+metadata:
+  author: Stanislav [MADTeacher] Chernyshev
+  url: https://github.com/MADTeacher
+  version: "1.0"
 ---
 
 # Advanced Skill Builder

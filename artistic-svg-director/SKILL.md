@@ -9,6 +9,10 @@ description: >-
   в PNG», «оцени качество картинки», «собери безопасный SVG для сайта,
   документа, презентации или репозитория», включая PNG-рендер, мультимодальную
   художественную проверку, Node.js-валидацию и правку результата.
+metadata:
+  author: Stanislav [MADTeacher] Chernyshev
+  url: https://github.com/MADTeacher
+  version: "1.0"
 ---
 
 # Художественный SVG-редактор
