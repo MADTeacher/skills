@@ -139,9 +139,12 @@ audit trail, вынеси его в отдельный файл вроде `anal
 
 Минимальная проверка:
 
-- YAML frontmatter начинается с `---`, содержит только `name` и `description`;
+- YAML frontmatter начинается с `---` и содержит обязательные `name` и
+  `description`; поле `metadata` допустимо и не является ошибкой само по себе;
 - `name` совпадает с папкой навыка;
 - `description` покрывает реальные triggers;
+- дополнительные поля frontmatter проверены на валидный YAML и согласованность с
+  `description`, `agents/openai.yaml` и runtime/UI metadata;
 - все ссылки и пути существуют;
 - `SKILL.md` можно использовать без внешнего отчета;
 - references дополняют, а не переопределяют core contract;
