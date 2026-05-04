@@ -111,6 +111,7 @@ EXAMPLE_SPEC = {
                     "source": "orders-service",
                     "target": "payments",
                     "label": "Списание",
+                    "route": "curve",
                     "dashed": True,
                     "exitX": 1,
                     "exitY": 0.5,
@@ -210,6 +211,44 @@ EDGE_STYLE = OrderedDict(
     ]
 )
 
+EDGE_ROUTE_STYLES = {
+    "orthogonal": EDGE_STYLE,
+    "elbow": OrderedDict(
+        [
+            ("edgeStyle", "elbowEdgeStyle"),
+            ("elbow", "vertical"),
+            ("rounded", "0"),
+            ("jettySize", "auto"),
+            ("html", "1"),
+            ("endArrow", "block"),
+        ]
+    ),
+    "straight": OrderedDict(
+        [
+            ("html", "1"),
+            ("endArrow", "block"),
+        ]
+    ),
+    "curve": OrderedDict(
+        [
+            ("edgeStyle", "orthogonalEdgeStyle"),
+            ("rounded", "0"),
+            ("orthogonalLoop", "1"),
+            ("jettySize", "auto"),
+            ("html", "1"),
+            ("curved", "1"),
+            ("endArrow", "block"),
+        ]
+    ),
+    "manual": OrderedDict(
+        [
+            ("edgeStyle", "none"),
+            ("html", "1"),
+            ("endArrow", "block"),
+        ]
+    ),
+}
+
 NODE_STYLE_KEYS = (
     "shape",
     "rounded",
@@ -257,6 +296,7 @@ EDGE_STYLE_KEYS = (
     "startSize",
     "endSize",
     "dashed",
+    "routing",
 )
 
 TRIVIAL_EDGE_GAP = 120.0
@@ -291,6 +331,45 @@ def numeric(value: object, default: float) -> float:
     if value is None or value == "":
         return default
     return float(value)
+
+
+def boolish(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def edge_route(edge: dict) -> str:
+    raw_route = edge.get("route", edge.get("routeKind", ""))
+    if raw_route:
+        route = str(raw_route).strip().lower()
+    elif boolish(edge.get("curved")):
+        route = "curve"
+    elif boolish(edge.get("manual")):
+        route = "manual"
+    else:
+        route = "orthogonal"
+    aliases = {
+        "curved": "curve",
+        "curve": "curve",
+        "manual": "manual",
+        "hand": "manual",
+        "freeform": "manual",
+        "polyline": "elbow",
+        "line": "straight",
+        "direct": "straight",
+    }
+    return aliases.get(route, route)
+
+
+def has_full_anchor_spec(edge: dict) -> bool:
+    return all(key in edge for key in ("exitX", "exitY", "entryX", "entryY"))
+
+
+def has_endpoint_points(edge: dict) -> bool:
+    return bool(edge.get("sourcePoint")) and bool(edge.get("targetPoint"))
 
 
 def node_bbox(node: dict) -> tuple[float, float, float, float]:
@@ -336,12 +415,17 @@ def collect_route_warnings(page: dict) -> list[str]:
     for edge in page.get("edges", []):
         if edge.get("points"):
             continue
-        if is_trivial_direct_route(page, edge):
+        if has_endpoint_points(edge):
+            continue
+        route = edge_route(edge)
+        if route == "straight" and has_full_anchor_spec(edge) and is_trivial_direct_route(page, edge):
+            continue
+        if route not in {"curve", "manual"} and has_full_anchor_spec(edge) and is_trivial_direct_route(page, edge):
             continue
         warnings.append(
             (
-                f"На странице '{page_name}' у связи '{edge.get('id')}' нет явных точек; "
-                "нетривиальные маршруты должны кодировать промежуточные точки до финальной проверки."
+                f"На странице '{page_name}' связь '{edge.get('id')}' оставлена без явного маршрута; "
+                "авторазводка draw.io запрещена в финальном файле."
             )
         )
     return warnings
@@ -361,7 +445,8 @@ def build_node_style(node: dict) -> str:
 def build_edge_style(edge: dict) -> str:
     if "style" in edge and edge["style"]:
         return edge["style"]
-    style = copy.deepcopy(EDGE_STYLE)
+    route = edge_route(edge)
+    style = copy.deepcopy(EDGE_ROUTE_STYLES.get(route, EDGE_STYLE))
     if edge.get("dashed"):
         style["dashed"] = "1"
         style["endArrow"] = edge.get("endArrow", "open")
@@ -522,6 +607,18 @@ def make_graph_model(page: dict) -> ET.Element:
                         "y": str(point["y"]),
                     },
                 )
+        for spec_key, as_value in (("sourcePoint", "sourcePoint"), ("targetPoint", "targetPoint")):
+            point = edge.get(spec_key)
+            if point:
+                ET.SubElement(
+                    geometry,
+                    "mxPoint",
+                    {
+                        "x": str(point["x"]),
+                        "y": str(point["y"]),
+                        "as": as_value,
+                    },
+                )
     return model
 
 
@@ -589,12 +686,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--strict-routes",
         action="store_true",
-        help="Завершаться с ошибкой, когда у нетривиальной связи нет явных точек.",
+        help="Завершаться с ошибкой, когда у связи нет явного маршрута.",
     )
     parser.add_argument(
         "--no-route-warnings",
         action="store_true",
-        help="Не печатать предупреждения для нетривиальных связей без явных точек.",
+        help="Не печатать предупреждения для связей без явного маршрута.",
     )
     return parser.parse_args()
 

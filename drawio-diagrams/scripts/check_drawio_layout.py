@@ -98,6 +98,8 @@ class Edge:
     parent_id: str
     style: dict[str, str]
     waypoints: tuple[Point, ...]
+    source_point: Point | None
+    target_point: Point | None
 
 
 @dataclass(frozen=True)
@@ -287,20 +289,43 @@ def style_fraction(style: dict[str, str], key: str) -> float | None:
     return None if value is None else float(value)
 
 
+def style_bool(style: dict[str, str], key: str) -> bool:
+    value = style.get(key)
+    if value is None:
+        return False
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def has_full_anchor_style(edge: Edge) -> bool:
+    return all(key in edge.style for key in ("exitX", "exitY", "entryX", "entryY"))
+
+
+def is_curved_edge(edge: Edge) -> bool:
+    return style_bool(edge.style, "curved")
+
+
+def is_manual_edge(edge: Edge) -> bool:
+    return (
+        edge.style.get("edgeStyle") == "none"
+        or edge.style.get("routing") == "manual"
+        or style_bool(edge.style, "manual")
+    )
+
+
 def build_polyline(edge: Edge, vertices: dict[str, Vertex]) -> list[Point] | None:
     source = vertices.get(edge.source_id)
     target = vertices.get(edge.target_id)
     if source is None or target is None:
         return None
-    first_hint = edge.waypoints[0] if edge.waypoints else target.bbox.center
-    last_hint = edge.waypoints[-1] if edge.waypoints else source.bbox.center
-    source_anchor = anchored_point(
+    first_hint = edge.waypoints[0] if edge.waypoints else edge.target_point or target.bbox.center
+    last_hint = edge.waypoints[-1] if edge.waypoints else edge.source_point or source.bbox.center
+    source_anchor = edge.source_point or anchored_point(
         source.bbox,
         style_fraction(edge.style, "exitX"),
         style_fraction(edge.style, "exitY"),
         first_hint,
     )
-    target_anchor = anchored_point(
+    target_anchor = edge.target_point or anchored_point(
         target.bbox,
         style_fraction(edge.style, "entryX"),
         style_fraction(edge.style, "entryY"),
@@ -373,6 +398,20 @@ def is_trivial_adjacent_edge(edge: Edge, vertices: dict[str, Vertex]) -> bool:
         if gap <= TRIVIAL_EDGE_GAP:
             return True
     return False
+
+
+def has_explicit_route(edge: Edge, vertices: dict[str, Vertex]) -> bool:
+    if edge.waypoints:
+        return True
+    if edge.source_point is not None and edge.target_point is not None:
+        return True
+    if is_curved_edge(edge) or is_manual_edge(edge):
+        return False
+    return has_full_anchor_style(edge) and is_trivial_adjacent_edge(edge, vertices)
+
+
+def route_requires_visual_qa(edge: Edge) -> bool:
+    return is_curved_edge(edge) or is_manual_edge(edge)
 
 
 def climb_parents(cell_id: str, cells: dict[str, ET.Element]) -> list[str]:
@@ -454,6 +493,8 @@ def parse_page(diagram: ET.Element) -> tuple[dict[str, Vertex], dict[str, Edge],
             style = parse_style(cell.get("style"))
             geometry = cell.find("mxGeometry")
             waypoints: list[Point] = []
+            source_point: Point | None = None
+            target_point: Point | None = None
             if geometry is not None:
                 for array in geometry.findall("Array"):
                     if array.get("as") != "points":
@@ -465,6 +506,15 @@ def parse_page(diagram: ET.Element) -> tuple[dict[str, Vertex], dict[str, Edge],
                                 y=numeric(point.get("y"), 0.0),
                             )
                         )
+                for point in geometry.findall("mxPoint"):
+                    parsed_point = Point(
+                        x=numeric(point.get("x"), 0.0),
+                        y=numeric(point.get("y"), 0.0),
+                    )
+                    if point.get("as") == "sourcePoint":
+                        source_point = parsed_point
+                    elif point.get("as") == "targetPoint":
+                        target_point = parsed_point
             edges[cell_id] = Edge(
                 cell_id=cell_id,
                 page_name=page_name,
@@ -473,6 +523,8 @@ def parse_page(diagram: ET.Element) -> tuple[dict[str, Vertex], dict[str, Edge],
                 parent_id=cell.get("parent", "1"),
                 style=style,
                 waypoints=tuple(waypoints),
+                source_point=source_point,
+                target_point=target_point,
             )
 
     return vertices, edges, cells, page_box
@@ -571,7 +623,45 @@ def analyze_page(diagram: ET.Element) -> list[Issue]:
                 f"у связи '{edge_label(edge)}' отсутствует source или target; сначала запусти структурную проверку",
             )
             continue
-        if not edge.waypoints and not is_trivial_adjacent_edge(edge, vertices):
+        if not has_explicit_route(edge, vertices):
+            emit(
+                "FAIL",
+                "auto-routing-forbidden",
+                (
+                    f"связь '{edge_label(edge)}' не имеет явного маршрута; "
+                    "авторазводка draw.io запрещена в финальном файле"
+                ),
+            )
+            continue
+        if route_requires_visual_qa(edge):
+            emit(
+                "WARN",
+                "visual-qa-required",
+                (
+                    f"связь '{edge_label(edge)}' использует кривую или ручную геометрию; "
+                    "скрипт не доказывает реальный изгиб, нужен последний визуальный QA"
+                ),
+            )
+            for waypoint in edge.waypoints:
+                for vertex in non_container_vertices.values():
+                    if vertex.cell_id in {edge.source_id, edge.target_id}:
+                        continue
+                    if vertex.bbox.contains_point_strict(waypoint):
+                        emit(
+                            "FAIL",
+                            "waypoint-inside-node",
+                            (
+                                f"у связи '{edge_label(edge)}' промежуточная точка ({waypoint.x:.1f}, {waypoint.y:.1f}) "
+                                f"находится внутри узла '{vertex_label(vertex)}'"
+                            ),
+                        )
+            continue
+        if (
+            not edge.waypoints
+            and edge.source_point is None
+            and edge.target_point is None
+            and not (has_full_anchor_style(edge) and is_trivial_adjacent_edge(edge, vertices))
+        ):
             emit(
                 "WARN",
                 "missing-waypoints",

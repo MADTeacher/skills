@@ -6,10 +6,11 @@ description: >-
   репозиторий в проектный skill с файлом .agents/skills/skill-name/SKILL.md,
   исправить слабый или раздутый skill, выбрать scripts/references/assets,
   добавить validation, forward-testing, resource routing, trigger-rich
-  description, layered validation, instruction coherence, проверку повторов и
-  конфликтов между SKILL.md, references, scripts и agent metadata, workflow
-  bypass audit, sequence hardening, обход обязательных шагов, validation
-  bypass, или превратить отчет/инструкцию/шаблон в переиспользуемый агентский навык.
+  description, Agent Skills spec compliance, layered validation, instruction
+  coherence, проверку повторов и конфликтов между SKILL.md, references,
+  scripts и agent metadata, workflow bypass audit, sequence hardening, обход
+  обязательных шагов, validation bypass, или превратить
+  отчет/инструкцию/шаблон в переиспользуемый агентский навык.
 metadata:
   author: Stanislav [MADTeacher] Chernyshev
   url: https://github.com/MADTeacher
@@ -54,6 +55,7 @@ README, пофайловый обзор или маркетинговая вит
 - отделяет обязательное поведение от доменных деталей;
 - объясняет, когда читать references, запускать scripts и использовать assets;
 - держит `description`, `SKILL.md` и resources согласованными слоями;
+- соблюдает Agent Skills specification для frontmatter, путей и ресурсов;
 - закрывает лазейки обхода обязательного workflow, validation и scripts;
 - предотвращает дорогие ошибки домена;
 - проверяется через validation, smoke tests или forward-testing;
@@ -79,10 +81,13 @@ README, пофайловый обзор или маркетинговая вит
    workflow и routing, а подробности вынести в routed resources.
 6. Проверить layered instruction coherence и workflow bypass resistance между
    `SKILL.md`, routed `references/`, `scripts/*`, agent metadata и assets.
-7. Записать или обновить файлы навыка.
-8. Проверить frontmatter, пути, ссылки, layer coherence и доступные validators
-   или smoke tests.
-9. Кратко сообщить, что изменено, какие файлы затронуты, что проверено и какие
+7. Перед записью провести Spec Compliance Gate: прочитать
+   `references/spec-compliance.md`, проверить frontmatter, лимиты полей,
+   имя папки, routing ресурсов и план автоматической проверки.
+8. Записать или обновить файлы навыка.
+9. После записи повторить Spec Compliance Gate и запустить доступный validator
+   или smoke tests. Если validator недоступен, назови блокер и риск.
+10. Кратко сообщить, что изменено, какие файлы затронуты, что проверено и какие
    риски остались.
 
 ## Resource Routing
@@ -91,12 +96,22 @@ README, пофайловый обзор или маркетинговая вит
 
 | Задача | Читать | Зачем |
 |---|---|---|
+| Создается, правится, аудитится или валидируется skill; меняется `description`, `compatibility`, `metadata`, `allowed-tools`, структура папок или ссылки на ресурсы | `references/spec-compliance.md` | Точные ограничения Agent Skills specification, строгий режим и проверка совместимости |
 | Нужно выбрать `references/`, `scripts`, степень свободы, split strategy или hardening обязательных шагов | `references/resource-design.md` | Матрица ресурсов, progressive disclosure и bypass resistance |
 | Нужно написать skill с нуля, переписать монолит или подобрать advanced pattern | `references/template-and-patterns.md` | Шаблон `SKILL.md`, guardrails, mandatory-step pattern и forward-testing |
 | Пользователь просит audit/review skill или нужна финальная самопроверка | `references/audit-checklist.md` | Режим аудита, workflow bypass checks, анти-паттерны и чеклист |
 
 Каждый resource в создаваемом навыке должен иметь маршрут из его `SKILL.md`.
 Не добавляй папки, templates, demos, scripts или README по инерции.
+
+## Available Scripts
+
+- `scripts/validate-skill.py` проверяет `SKILL.md` по Agent Skills
+  specification. Запускай из директории навыка:
+  `uv run scripts/validate-skill.py <skill-dir>`. Для машинного чтения
+  добавь `--json`.
+- Если `uv` недоступен, не называй автоматическую проверку выполненной. Сделай
+  ручной Spec Compliance Gate, сообщи блокер и риск.
 
 ## Layer Ownership
 
@@ -141,14 +156,33 @@ audit trail, вынеси его в отдельный файл вроде `anal
 
 ## Validation
 
-Минимальная проверка:
+Spec Compliance Gate обязателен перед записью skill и перед финальной сдачей.
+Для создаваемого, правимого или аудитируемого навыка проверь:
 
 - YAML frontmatter начинается с `---` и содержит обязательные `name` и
-  `description`; поле `metadata` допустимо и не является ошибкой само по себе;
-- `name` совпадает с папкой навыка;
+  `description`;
+- `name` имеет 1-64 символа, использует только `a-z`, `0-9` и `-`, не
+  начинается и не заканчивается дефисом, не содержит `--`, совпадает с папкой
+  навыка;
+- `description` имеет 1-1024 символа, описывает действие навыка и случаи
+  применения;
+- `compatibility`, если поле есть, имеет 1-500 символов и описывает реальные
+  требования среды;
+- `license`, если поле есть, является короткой строкой с названием лицензии
+  или ссылкой на файл лицензии;
+- `metadata`, если поле есть, является mapping со строковыми ключами и
+  строковыми значениями; выбирай уникальные имена ключей;
+- `allowed-tools`, если поле есть, является строкой; помни, что поле
+  экспериментальное и поддерживается не всеми агентами;
+- `SKILL.md` остается до 500 строк и примерно до 5000 токенов либо детали
+  вынесены в routed resources.
+
+Минимальная проверка после Spec Compliance Gate:
+
 - `description` покрывает реальные triggers;
-- дополнительные поля frontmatter проверены на валидный YAML и согласованность с
-  `description`, `agents/openai.yaml` и runtime/UI metadata;
+- дополнительные поля frontmatter проверены на согласованность с
+  `description`, `agents/openai.yaml`, runtime/UI metadata и Agent Skills
+  specification;
 - все ссылки и пути существуют;
 - `SKILL.md` можно использовать без внешнего отчета;
 - references дополняют, а не переопределяют core contract;

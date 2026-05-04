@@ -48,6 +48,7 @@ description: >-
 
 ## Validation
 
+- Прочитай `references/spec-compliance.md` и выполни Spec Compliance Gate.
 - Проверь frontmatter, ссылки, пути и layer coherence.
 - Проверь, что обязательные шаги нельзя обойти через optional wording.
 - Запусти smoke tests для scripts.
@@ -101,7 +102,23 @@ description: >-
 - bulk transforms;
 - работу с хрупкими XML/JSON/binary форматами.
 
-Script должен иметь usage, понятные ошибки и smoke test.
+Script должен иметь usage, понятные ошибки, структурированный вывод,
+предсказуемый размер вывода и smoke test. Он не должен ждать интерактивный ввод.
+
+## Spec Compliance Gate
+
+Используй этот guardrail для навыков Agent Skills:
+
+```markdown
+Перед записью и перед финальной сдачей skill обязательно проверь
+`references/spec-compliance.md`. Убедись, что `name`, `description`,
+`compatibility`, `metadata`, `license`, `allowed-tools`, имя папки, resource
+routing и размер `SKILL.md` соответствуют спецификации.
+
+После записи запусти `uv run scripts/validate-skill.py <skill-dir>`, если
+валидатор доступен. Если запуск невозможен, остановись, назови блокер и риск.
+Не заменяй этот шаг best-effort без явного waiver пользователя.
+```
 
 ## Reference Shards
 
