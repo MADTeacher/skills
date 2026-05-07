@@ -159,4 +159,5 @@ validation и blocker/fallback для обязательного шага.
 - [ ] Есть validation protocol.
 - [ ] Доступный `scripts/validate-skill.py` или внешний `skills-ref validate`
   запущен; если запуск невозможен, блокер и риск названы в ответе.
-- [ ] Для сложного навыка есть план forward-testing.
+- [ ] Если пользователь явно просил eval-контур, benchmark, регрессию поведения
+  или проверку работоспособности навыка, есть план forward-testing.

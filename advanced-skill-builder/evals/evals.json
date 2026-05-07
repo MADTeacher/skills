@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "evals": [
+    {
+      "id": "create-skill-with-evals",
+      "title": "Создание навыка с явным eval-контуром",
+      "harness_adapter": "generic",
+      "adapter_notes": "Запусти в любом агентском harness из references/eval-harnesses.md с чистым контекстом и сохранением transcript.",
+      "prompt": "Use the skill at <advanced-skill-builder-path> to solve this user request: Создай агентский навык csv-contract-auditor для проверки CSV-контрактов, добавь validation, evals/evals.json и harness-neutral проверку работоспособности.",
+      "expected_output": "Создан каталог .agents/skills/csv-contract-auditor с SKILL.md, routed resources, evals/evals.json, планом запуска evals и финальным отчетом о проверках.",
+      "files": [],
+      "assertions": [
+        {
+          "type": "artifact_exists",
+          "path": ".agents/skills/csv-contract-auditor/SKILL.md"
+        },
+        {
+          "type": "artifact_exists",
+          "path": ".agents/skills/csv-contract-auditor/evals/evals.json"
+        },
+        {
+          "type": "contains",
+          "target": "final_response",
+          "value": "провер"
+        },
+        {
+          "type": "contains",
+          "target": "created_skill",
+          "value": "harness_adapter"
+        }
+      ],
+      "grading": {
+        "method": "rubric",
+        "pass_score": 0.8
+      }
+    },
+    {
+      "id": "create-skill-without-evals-by-default",
+      "title": "Создание навыка без eval-каталога по умолчанию",
+      "harness_adapter": "generic",
+      "adapter_notes": "Запусти в чистой рабочей копии и проверь список созданных файлов после ответа агента.",
+      "prompt": "Use the skill at <advanced-skill-builder-path> to solve this user request: Создай агентский навык csv-contract-auditor для проверки CSV-контрактов. Он должен находить обязательные колонки, проверять типы значений и кратко сообщать найденные нарушения.",
+      "expected_output": "Создан каталог .agents/skills/csv-contract-auditor с SKILL.md, routing и базовой validation. Каталог evals/evals.json, benchmark, forward-testing и harness adapters не создаются, потому что пользователь их не просил.",
+      "files": [],
+      "assertions": [
+        {
+          "type": "artifact_exists",
+          "path": ".agents/skills/csv-contract-auditor/SKILL.md"
+        },
+        {
+          "type": "contains",
+          "target": "final_response",
+          "value": "провер"
+        },
+        {
+          "type": "not_contains",
+          "target": "changed_files",
+          "value": ".agents/skills/csv-contract-auditor/evals/evals.json"
+        },
+        {
+          "type": "not_contains",
+          "target": "created_skill",
+          "value": "harness_adapter"
+        }
+      ],
+      "grading": {
+        "method": "rubric",
+        "pass_score": 0.8
+      }
+    },
+    {
+      "id": "audit-weak-skill-no-evals-by-default",
+      "title": "Аудит слабого навыка без автоматического eval-контура",
+      "harness_adapter": "generic",
+      "adapter_notes": "Подготовь временный слабый skill fixture в рабочей копии harness, затем передай путь в prompt.",
+      "prompt": "Use the skill at <advanced-skill-builder-path> to solve this user request: Проверь существующий навык weak-exporter. Он обещает PDF/PNG export, но у него нет scripts и smoke tests. Предложи и внеси правки.",
+      "expected_output": "Агент находит format promises без pipeline, правит SKILL.md или требует недостающий pipeline, запускает базовую validation и сообщает риски. Eval-контур может быть назван как отдельная опция, но evals/evals.json не создается без явной просьбы.",
+      "files": [],
+      "assertions": [
+        {
+          "type": "contains",
+          "target": "final_response",
+          "value": "риск"
+        },
+        {
+          "type": "contains",
+          "target": "changed_files",
+          "value": "SKILL.md"
+        },
+        {
+          "type": "not_contains",
+          "target": "changed_files",
+          "value": "evals/evals.json"
+        },
+        {
+          "type": "manual_review",
+          "target": "review_notes",
+          "value": "Eval-контур не создан без явной просьбы пользователя"
+        }
+      ],
+      "grading": {
+        "method": "rubric",
+        "pass_score": 0.8
+      }
+    },
+    {
+      "id": "add-harness-adapters",
+      "title": "Добавление adapter-команд по явной просьбе",
+      "harness_adapter": "generic",
+      "adapter_notes": "Проверяется итоговый skill artifact; конкретный внешний CLI тут не запускается.",
+      "prompt": "Use the skill at <advanced-skill-builder-path> to solve this user request: Добавь в навык проверку eval-кейсов через Codex, Cursor CLI, OpenCode, Pi и Claude Code без привязки core workflow к одному harness.",
+      "expected_output": "Навык добавляет harness-neutral reference, перечисляет adapter-команды, сохраняет общий eval contract отдельно от adapter-specific деталей и запускает доступные валидаторы.",
+      "files": [],
+      "assertions": [
+        {
+          "type": "contains",
+          "target": "references/eval-harnesses.md",
+          "value": "cursor-agent"
+        },
+        {
+          "type": "contains",
+          "target": "references/eval-harnesses.md",
+          "value": "opencode run"
+        },
+        {
+          "type": "contains",
+          "target": "references/eval-harnesses.md",
+          "value": "pi --mode json"
+        },
+        {
+          "type": "contains",
+          "target": "references/eval-harnesses.md",
+          "value": "claude -p"
+        }
+      ],
+      "grading": {
+        "method": "rubric",
+        "pass_score": 0.8
+      }
+    }
+  ]
+}

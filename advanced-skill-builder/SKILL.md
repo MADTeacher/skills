@@ -1,15 +1,17 @@
 ---
 name: advanced-skill-builder
 description: >-
-  Создавать, улучшать, аудировать и переписывать продвинутые агентские навыки.
+  Создавать, улучшать, аудитить и переписывать продвинутые агентские навыки.
   Используй, когда нужно спроектировать новый skill, превратить заметки или
   репозиторий в проектный skill с файлом .agents/skills/skill-name/SKILL.md,
   исправить слабый или раздутый skill, выбрать scripts/references/assets,
-  добавить validation, forward-testing, resource routing, trigger-rich
-  description, Agent Skills spec compliance, layered validation, instruction
-  coherence, проверку повторов и конфликтов между SKILL.md, references,
-  scripts и agent metadata, workflow bypass audit, sequence hardening, обход
-  обязательных шагов, validation bypass, или превратить
+  добавить validation, а по явной просьбе evals, smoke tests,
+  forward-testing, harness-neutral проверку работоспособности, CLI runner
+  adapters, benchmark, assertions и rubric grading; настроить resource routing,
+  trigger-rich description, Agent Skills spec compliance, layered validation,
+  instruction coherence, проверку повторов и конфликтов между SKILL.md,
+  references, scripts и agent metadata, workflow bypass audit, sequence
+  hardening, обход обязательных шагов, validation bypass, или превратить
   отчет/инструкцию/шаблон в переиспользуемый агентский навык.
 metadata:
   author: Stanislav [MADTeacher] Chernyshev
@@ -58,7 +60,9 @@ README, пофайловый обзор или маркетинговая вит
 - соблюдает Agent Skills specification для frontmatter, путей и ресурсов;
 - закрывает лазейки обхода обязательного workflow, validation и scripts;
 - предотвращает дорогие ошибки домена;
-- проверяется через validation, smoke tests или forward-testing;
+- подтверждается минимальной доступной validation;
+- создает evals, benchmark, forward-testing и harness adapters только по явной
+  просьбе пользователя;
 - не тащит лишние папки, демо и документацию по инерции.
 
 Плохой skill выглядит как аналитический отчет, прячет условия применения в
@@ -81,13 +85,22 @@ README, пофайловый обзор или маркетинговая вит
    workflow и routing, а подробности вынести в routed resources.
 6. Проверить layered instruction coherence и workflow bypass resistance между
    `SKILL.md`, routed `references/`, `scripts/*`, agent metadata и assets.
-7. Перед записью провести Spec Compliance Gate: прочитать
+7. Если пользователь явно просит evals, benchmark, test prompts, проверку
+   работоспособности, регрессию поведения, тестовый контур или harness adapter,
+   спроектировать Eval Layer Gate: измеримый успех, test cases, harness
+   adapter, outputs, assertions, grading и benchmark. Без такого запроса не
+   создавать `evals/evals.json`, benchmark, forward-testing или harness
+   adapters.
+8. Перед записью провести Spec Compliance Gate: прочитать
    `references/spec-compliance.md`, проверить frontmatter, лимиты полей,
    имя папки, routing ресурсов и план автоматической проверки.
-8. Записать или обновить файлы навыка.
-9. После записи повторить Spec Compliance Gate и запустить доступный validator
-   или smoke tests. Если validator недоступен, назови блокер и риск.
-10. Кратко сообщить, что изменено, какие файлы затронуты, что проверено и какие
+9. Записать или обновить файлы навыка.
+10. После записи повторить Spec Compliance Gate и запустить доступный
+   `validate-skill.py`; для уже существующих или явно добавленных scripts
+   запустить smoke tests, если они есть. Если validator недоступен, назови
+   блокер и риск. Если пользователь явно просил eval-контур или правились
+   `evals/*`, запусти `validate-eval-suite.py`.
+11. Кратко сообщить, что изменено, какие файлы затронуты, что проверено и какие
    риски остались.
 
 ## Resource Routing
@@ -98,8 +111,10 @@ README, пофайловый обзор или маркетинговая вит
 |---|---|---|
 | Создается, правится, аудитится или валидируется skill; меняется `description`, `compatibility`, `metadata`, `allowed-tools`, структура папок или ссылки на ресурсы | `references/spec-compliance.md` | Точные ограничения Agent Skills specification, строгий режим и проверка совместимости |
 | Нужно выбрать `references/`, `scripts`, степень свободы, split strategy или hardening обязательных шагов | `references/resource-design.md` | Матрица ресурсов, progressive disclosure и bypass resistance |
-| Нужно написать skill с нуля, переписать монолит или подобрать advanced pattern | `references/template-and-patterns.md` | Шаблон `SKILL.md`, guardrails, mandatory-step pattern и forward-testing |
+| Нужно написать skill с нуля, переписать монолит или подобрать advanced pattern | `references/template-and-patterns.md` | Шаблон `SKILL.md`, guardrails и mandatory-step pattern |
 | Пользователь просит audit/review skill или нужна финальная самопроверка | `references/audit-checklist.md` | Режим аудита, workflow bypass checks, анти-паттерны и чеклист |
+| Пользователь явно просит evals, benchmark, проверку работоспособности навыка, assertions, grading, test prompts, регрессию поведения или тестовый контур | `references/eval-design.md` | Схема eval suite, outputs, evidence, grading и критерии PASS |
+| Пользователь явно просит запускать evals в Codex, Cursor CLI, OpenCode, Pi, Claude Code или другом агентском harness | `references/eval-harnesses.md` | Harness-neutral контракт и команды runner adapters |
 
 Каждый resource в создаваемом навыке должен иметь маршрут из его `SKILL.md`.
 Не добавляй папки, templates, demos, scripts или README по инерции.
@@ -110,6 +125,10 @@ README, пофайловый обзор или маркетинговая вит
   specification. Запускай из директории навыка:
   `uv run scripts/validate-skill.py <skill-dir>`. Для машинного чтения
   добавь `--json`.
+- `scripts/validate-eval-suite.py` проверяет `evals/evals.json`: test cases,
+  `harness_adapter`, assertions, files и базовую проверяемость набора. Запускай
+  из директории навыка: `uv run scripts/validate-eval-suite.py <skill-dir>`.
+  Для машинного чтения добавь `--json`.
 - Если `uv` недоступен, не называй автоматическую проверку выполненной. Сделай
   ручной Spec Compliance Gate, сообщи блокер и риск.
 
@@ -189,11 +208,22 @@ Spec Compliance Gate обязателен перед записью skill и п�
 - terms, defaults и tool choices едины во всех слоях;
 - обязательные шаги нельзя пропустить через optional wording, fallback или
   ручную замену проверяемого pipeline;
-- доступный validator или smoke tests для scripts запущены.
+- доступный `validate-skill.py` запущен;
+- smoke tests для scripts запущены, если scripts уже существовали или были
+  явно добавлены в текущей задаче.
 
-Для сложных навыков проведи forward-testing на свежих задачах. Передавай
-проверяющему агенту сам skill и реалистичный пользовательский запрос, но не
-передавай свои диагнозы, ожидаемые исправления или скрытые ответы.
+Eval Layer Gate включается только по явной просьбе пользователя или при правке
+уже существующих `evals/*`. Явные признаки: `evals`, `benchmark`,
+`test prompts`, проверка работоспособности навыка, регрессия поведения,
+тестовый контур, `harness_adapter`, harness-neutral запуск, assertions,
+grading. В этом режиме спроектируй или обнови `evals/evals.json`, выбери
+`harness_adapter`, зафиксируй outputs, assertions, grading и benchmark. Затем
+запусти `uv run scripts/validate-eval-suite.py <skill-dir> --json`, если
+скрипт доступен.
+
+Forward-testing или eval-run на свежих задачах проводи только в Eval Layer Gate.
+Передавай проверяющему агенту сам skill и реалистичный пользовательский запрос,
+но не передавай свои диагнозы, ожидаемые исправления или скрытые ответы.
 
 ## Constraints
 

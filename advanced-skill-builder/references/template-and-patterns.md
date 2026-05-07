@@ -52,7 +52,8 @@ description: >-
 - Проверь frontmatter, ссылки, пути и layer coherence.
 - Проверь, что обязательные шаги нельзя обойти через optional wording.
 - Запусти smoke tests для scripts.
-- Для сложных изменений проведи forward-testing.
+- Если пользователь явно просит eval-контур, benchmark, регрессию поведения или
+  проверку работоспособности навыка, проведи forward-testing.
 ```
 
 ## Failure-Mode Guardrails
@@ -131,6 +132,9 @@ routing и размер `SKILL.md` соответствуют специфика
 `references/everything.md`.
 
 ## Forward-Testing
+
+Используй этот паттерн только когда пользователь явно просит eval-контур,
+benchmark, регрессию поведения или проверку работоспособности навыка.
 
 Формат запроса проверяющему агенту:
 
