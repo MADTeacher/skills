@@ -70,6 +70,7 @@ npx skills add MADTeacher/skills --skill tdd --agent universal
 | `bug-fix-task` | Диагностика багов, поиск корневой причины и формирование задачи на исправление с TDD-планом. | [SKILL.md](./bug-fix-task/SKILL.md) |
 | `design-studio` | Создание и ревью дизайн-артефактов: интерфейсов, лендингов, прототипов, визуальных направлений и дизайн-аудитов. | [SKILL.md](./design-studio/SKILL.md) |
 | `drawio-diagrams` | Создание, редактирование, проверка и экспорт диаграмм `draw.io` / `diagrams.net` в редактируемом виде и графических форматах. | [SKILL.md](./drawio-diagrams/SKILL.md) |
+| `mermaid-diagrams` | Создание, проверка, PNG-рендер и визуальное ревью Mermaid-диаграмм с обязательной оценкой языковой моделью. | [SKILL.md](./mermaid-diagrams/SKILL.md) |
 | `presentation-design` | Создание, доработка, последовательная проверка и экспорт презентаций в HTML, PPTX, PDF, PNG и связанных форматах. | [SKILL.md](./presentation-design/SKILL.md) |
 | `prd-from-context` | Сборка PRD на русском языке из уже имеющегося контекста, требований и понимания кодовой базы без дополнительного интервью. | [SKILL.md](./prd-from-context/SKILL.md) |
 | `prd-to-vertical-slice-tasks` | Декомпозиция PRD, плана или спецификации в независимые задачи через вертикальные срезы. | [SKILL.md](./prd-to-vertical-slice-tasks/SKILL.md) |
